@@ -3,7 +3,7 @@ import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import os from 'node:os';
-const root = fileURLToPath(new URL('../dist-pages/', import.meta.url));
+const root = fileURLToPath(new URL('../dist/', import.meta.url));
 const port = Number(process.env.PORT || 4173);
 const mime = {
   '.html': 'text/html; charset=utf-8',

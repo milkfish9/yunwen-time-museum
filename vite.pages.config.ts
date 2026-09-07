@@ -13,5 +13,5 @@ export default defineConfig({
     strictPort: true,
     watch: { usePolling: true, ignored: ['**/dist/**', '**/.wrangler/**'] },
   },
-  build: { outDir: 'dist-pages', emptyOutDir: true },
+  build: { outDir: 'dist', emptyOutDir: true },
 });

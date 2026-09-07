@@ -25,7 +25,7 @@ npm run build
 npm start
 ```
 
-Cloudflare Pages 的建置指令為 `npm run build`，輸出目錄為 `dist-pages`。
+Cloudflare Pages 的建置指令為 `npm run build`，輸出目錄為 `dist`。
 
 ## P0 驗收範圍
 
