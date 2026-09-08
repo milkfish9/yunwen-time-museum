@@ -161,20 +161,12 @@ button[data-slot='button'] {
   padding: 30px 3.5% 24px;
 }
 .home-intro {
-  display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(250px, 0.6fr);
-  align-items: end;
-  gap: 36px;
+  display: block;
   margin-bottom: 20px;
 }
 .home-intro h1 {
   max-width: 900px;
   margin-bottom: 0;
-}
-.home-intro > p {
-  margin-bottom: 5px;
-  color: #516b76;
-  font-size: 15px;
 }
 .horizontal-timeline {
   overflow-x: auto;
@@ -333,23 +325,6 @@ button[data-slot='button'] {
 .active .shape-glyph i,
 .song-card .shape-glyph i {
   background: var(--lime);
-}
-.map-foot {
-  margin: 2px 10px;
-  color: #5a7079;
-  font-size: 13px;
-}
-.map-foot span,
-.map-foot b {
-  display: inline-block;
-  width: 28px;
-  margin-right: 7px;
-  border-top: 3px solid #7897a4;
-  vertical-align: middle;
-}
-.map-foot b {
-  border-top-style: dashed;
-  border-color: var(--teal);
 }
 
 /* Interior frame and the timeline in the upper-left corner. */
@@ -1203,6 +1178,27 @@ button[data-slot='button'] {
   margin: 0;
   color: #674b36;
 }
+.board-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.admin-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 99px;
+  background: #315f52;
+  color: white;
+  font-size: 13px;
+  font-weight: 800;
+}
+.admin-badge svg {
+  width: 17px;
+}
 .board-message,
 .empty-board {
   display: block;
@@ -1237,37 +1233,31 @@ button[data-slot='button'] {
 .posted-work:nth-child(even) {
   transform: rotate(0.35deg);
 }
-.work-seal {
-  position: absolute;
-  right: 14px;
-  top: 14px;
-  width: 35px;
-  height: 35px;
+.work-heading {
   display: grid;
-  place-items: center;
-  border: 2px solid #a94e3c;
-  color: #a94e3c;
-  font-weight: 900;
-  transform: rotate(8deg);
+  grid-template-columns: 0.8fr 1.4fr 1fr;
+  gap: 8px;
+  margin: -22px -22px 18px;
+  padding: 14px 18px;
+  border-bottom: 2px solid #cda778;
+  background: #f3e3c5;
 }
-.post-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  padding-right: 45px;
+.work-heading > span {
+  min-width: 0;
 }
-.post-meta span {
-  padding: 3px 8px;
-  border-radius: 99px;
-  background: #e5efe7;
-  color: #315f52;
-  font-size: 12px;
+.work-heading small {
+  display: block;
+  color: #85664d;
+  font-size: 11px;
   font-weight: 800;
+  letter-spacing: 0.08em;
 }
-.posted-work h3 {
-  margin: 0 0 12px;
-  color: #6f3c25;
-  font-size: 18px;
+.work-heading strong {
+  display: block;
+  overflow-wrap: anywhere;
+  color: #4c2f20;
+  font-size: 19px;
+  line-height: 1.35;
 }
 .poem-lines {
   display: flex;
@@ -1287,6 +1277,71 @@ button[data-slot='button'] {
   color: #8a725e;
   font-size: 12px;
   text-align: right;
+}
+.delete-control {
+  margin-top: 12px;
+  padding-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-top: 1px dashed #c8a77f;
+}
+.delete-control > span {
+  margin-right: auto;
+  color: #9a3e30;
+  font-weight: 800;
+}
+.admin-entry {
+  margin: 14px 0 0 auto;
+  min-height: 42px;
+  padding: 7px 10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  background: transparent;
+  color: #607680;
+  font-size: 13px;
+}
+.admin-entry:hover {
+  color: var(--teal);
+}
+.admin-entry svg {
+  width: 17px;
+}
+.admin-login {
+  margin: 14px 0 0 auto;
+  width: min(520px, 100%);
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: end;
+  gap: 9px;
+  border: 1px solid #b9cbd2;
+  border-radius: 12px;
+  background: #f7fafb;
+}
+.admin-login label {
+  grid-column: 1 / -1;
+  color: #49636e;
+  font-size: 13px;
+  font-weight: 800;
+}
+.admin-login input {
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid #b9cbd2;
+  border-radius: 8px;
+  background: white;
+}
+.admin-login output {
+  grid-column: 1 / -1;
+  color: #a54232;
+  font-size: 13px;
+  font-weight: 700;
 }
 .teaching-note {
   margin-top: 24px;
@@ -1421,9 +1476,6 @@ button[data-slot='button'] {
   }
   .home-intro h1 {
     font-size: 35px;
-  }
-  .home-intro > p {
-    margin-top: 12px;
   }
   .timeline-track {
     min-width: 1040px;
@@ -1597,11 +1649,30 @@ button[data-slot='button'] {
   .city-board > header {
     flex-direction: column;
   }
+  .board-actions {
+    justify-content: flex-start;
+  }
   .city-board h2 {
     font-size: 27px;
   }
   .work-wall {
     grid-template-columns: 1fr;
+  }
+  .work-heading {
+    grid-template-columns: 1fr;
+  }
+  .work-heading > span {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .admin-login {
+    grid-template-columns: 1fr;
+  }
+  .admin-login label,
+  .admin-login output {
+    grid-column: 1;
   }
 }
 

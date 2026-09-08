@@ -13,6 +13,8 @@ import {
   Music2,
   RefreshCw,
   RotateCcw,
+  ShieldCheck,
+  Trash2,
   Send,
   Sparkles,
 } from 'lucide-react';
@@ -28,6 +30,7 @@ import {
   countWritingCharacters,
   firstIncompleteLine,
   flattenPattern,
+  wheelTargetDegrees,
 } from '@/lib/ci-workshop';
 
 type PageId = 'origin' | 'create';
@@ -204,7 +207,7 @@ function CapsuleMachine({
       <div>
         <span className="step-label">第一抽 · 詞牌模具</span>
         <h2>{pattern ? pattern.name : '扭出今天的詞牌'}</h2>
-        <p>五顆扭蛋裝著五副不同的詞牌格式。</p>
+        <p>【詞牌】決定了你的作品的字數和格式。</p>
         <Button onClick={spin} disabled={phase === 'spinning'}>
           <Dices />{' '}
           {phase === 'spinning'
@@ -247,7 +250,7 @@ function TopicWheel({
       <div>
         <span className="step-label">第二抽 · 創作題目</span>
         <h2>{topic ?? '轉出真正要寫的題目'}</h2>
-        <p>詞牌管格式；轉盤抽到的才是這次內容。</p>
+        <p>轉盤要抽的是【題目】。</p>
         <Button onClick={spin} disabled={spinning}>
           <RotateCcw />{' '}
           {spinning ? '轉盤旋轉中…' : topic ? '再轉一次' : '轉動題目盤'}
@@ -342,7 +345,7 @@ function WritingMold({
       <div className="mold-intro">
         <div>
           <span className="step-label">第三步 · 自己填詞</span>
-          <h2 id="writing-title">把題目寫進「{pattern.name}」的形狀</h2>
+          <h2 id="writing-title">把你的創作歌詞寫進「{pattern.name}」的形狀</h2>
           <p>{pattern.guide}</p>
         </div>
         <a href={pattern.source} target="_blank" rel="noreferrer">
@@ -428,10 +431,20 @@ function WritingMold({
   );
 }
 
-function BianjingBoard({ revision }: { revision: number }) {
+function BianjingBoard({
+  revision,
+  adminPassword,
+  onExitAdmin,
+}: {
+  revision: number;
+  adminPassword?: string;
+  onExitAdmin?: () => void;
+}) {
   const [works, setWorks] = useState<PublishedWork[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -484,6 +497,32 @@ function BianjingBoard({ revision }: { revision: number }) {
     };
   }, [revision]);
 
+  async function deleteWork(id: string) {
+    if (!adminPassword) return;
+    setDeleting(true);
+    setMessage('');
+    try {
+      const result = await fetch('/api/works/admin', {
+        method: 'DELETE',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ id, password: adminPassword }),
+      });
+      const data = (await result.json()) as { message?: string };
+      if (!result.ok) throw new Error(data.message);
+      setWorks((current) => current.filter((work) => work.id !== id));
+      setPendingDelete(null);
+      setMessage('作品已從汴京城佈告欄移除。');
+    } catch (error) {
+      setMessage(
+        error instanceof Error && error.message
+          ? error.message
+          : '作品尚未刪除，請再試一次。',
+      );
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <section className="city-board" aria-labelledby="city-board-title">
       <header>
@@ -494,13 +533,25 @@ function BianjingBoard({ revision }: { revision: number }) {
           </h2>
           <p>城裡新張貼的詞都在這裡。讀讀別人的詞牌如何裝進不同題目。</p>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => void load()}
-          disabled={loading}
-        >
-          <RefreshCw /> {loading ? '巡城中…' : '重新整理佈告欄'}
-        </Button>
+        <div className="board-actions">
+          {adminPassword && (
+            <span className="admin-badge">
+              <ShieldCheck /> 管理模式
+            </span>
+          )}
+          <Button
+            variant="outline"
+            onClick={() => void load()}
+            disabled={loading}
+          >
+            <RefreshCw /> {loading ? '巡城中…' : '重新整理佈告欄'}
+          </Button>
+          {adminPassword && onExitAdmin && (
+            <Button variant="ghost" onClick={onExitAdmin}>
+              退出管理
+            </Button>
+          )}
+        </div>
       </header>
       {message && <output className="board-message">{message}</output>}
       {!loading && !message && works.length === 0 && (
@@ -512,12 +563,20 @@ function BianjingBoard({ revision }: { revision: number }) {
       <div className="work-wall">
         {works.map((work) => (
           <article className="posted-work" key={work.id}>
-            <div className="work-seal">詞</div>
-            <p className="post-meta">
-              <span>{work.tune}</span>
-              <span>題目・{work.topic}</span>
-            </p>
-            <h3>{work.author}</h3>
+            <div className="work-heading">
+              <span>
+                <small>詞牌名</small>
+                <strong>{work.tune}</strong>
+              </span>
+              <span>
+                <small>題目</small>
+                <strong>{work.topic}</strong>
+              </span>
+              <span>
+                <small>作者名字</small>
+                <strong>{work.author}</strong>
+              </span>
+            </div>
             <div className="poem-lines">
               {work.lines.map((line, index) => (
                 <span key={`${work.id}-${index}`}>{line}</span>
@@ -532,10 +591,105 @@ function BianjingBoard({ revision }: { revision: number }) {
               }).format(work.createdAt)}{' '}
               張貼
             </time>
+            {adminPassword && (
+              <div className="delete-control">
+                {pendingDelete === work.id ? (
+                  <>
+                    <span>確定刪除這一篇？</span>
+                    <Button
+                      variant="destructive"
+                      onClick={() => void deleteWork(work.id)}
+                      disabled={deleting}
+                    >
+                      <Trash2 /> {deleting ? '刪除中…' : '確認刪除'}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => setPendingDelete(null)}
+                    >
+                      取消
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={() => setPendingDelete(work.id)}
+                  >
+                    <Trash2 /> 刪除此作
+                  </Button>
+                )}
+              </div>
+            )}
           </article>
         ))}
       </div>
     </section>
+  );
+}
+
+function BoardAdminAccess({
+  onAuthenticated,
+}: {
+  onAuthenticated: (password: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [password, setPassword] = useState('');
+  const [checking, setChecking] = useState(false);
+  const [message, setMessage] = useState('');
+
+  async function authenticate(event: React.SyntheticEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setChecking(true);
+    setMessage('');
+    try {
+      const result = await fetch('/api/works/admin', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      const data = (await result.json()) as { message?: string };
+      if (!result.ok) throw new Error(data.message);
+      onAuthenticated(password);
+      setPassword('');
+      setOpen(false);
+    } catch (error) {
+      setMessage(
+        error instanceof Error && error.message
+          ? error.message
+          : '無法進入管理模式。',
+      );
+    } finally {
+      setChecking(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <button className="admin-entry" onClick={() => setOpen(true)}>
+        <ShieldCheck /> 管理汴京城佈告欄
+      </button>
+    );
+  }
+
+  return (
+    <form className="admin-login" onSubmit={authenticate}>
+      <label htmlFor="board-admin-password">管理密碼</label>
+      <input
+        id="board-admin-password"
+        type="password"
+        value={password}
+        onChange={(event) => setPassword(event.target.value)}
+        autoComplete="current-password"
+        required
+      />
+      <Button type="submit" disabled={checking}>
+        <ShieldCheck /> {checking ? '驗證中…' : '進入管理'}
+      </Button>
+      <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+        取消
+      </Button>
+      {message && <output>{message}</output>}
+    </form>
   );
 }
 
@@ -547,6 +701,8 @@ function CreatePage() {
   const [wheelTurns, setWheelTurns] = useState(0);
   const [boardRevision, setBoardRevision] = useState(0);
   const [boardVisible, setBoardVisible] = useState(false);
+  const [publishedThisSession, setPublishedThisSession] = useState(false);
+  const [adminPassword, setAdminPassword] = useState<string | null>(null);
   const timers = useRef<number[]>([]);
 
   useEffect(
@@ -571,7 +727,7 @@ function CreatePage() {
     setWheelSpinning(true);
     setTopic(null);
     const index = randomIndex(creationTopics.length);
-    setWheelTurns((turns) => turns + 1080 + index * 90 + 35);
+    setWheelTurns((turns) => wheelTargetDegrees(turns, index));
     timers.current.push(
       window.setTimeout(() => {
         setTopic(creationTopics[index]);
@@ -639,6 +795,7 @@ function CreatePage() {
           pattern={pattern}
           topic={topic}
           onPublished={() => {
+            setPublishedThisSession(true);
             setBoardVisible(true);
             setBoardRevision((value) => value + 1);
           }}
@@ -647,7 +804,14 @@ function CreatePage() {
 
       {boardVisible && (
         <div className="board-arrival">
-          <BianjingBoard revision={boardRevision} />
+          <BianjingBoard
+            revision={boardRevision}
+            adminPassword={adminPassword ?? undefined}
+            onExitAdmin={() => {
+              setAdminPassword(null);
+              setBoardVisible(publishedThisSession);
+            }}
+          />
         </div>
       )}
 
@@ -666,6 +830,13 @@ function CreatePage() {
           ))}
         </ul>
       </details>
+      <BoardAdminAccess
+        onAuthenticated={(password) => {
+          setAdminPassword(password);
+          setBoardVisible(true);
+          setBoardRevision((value) => value + 1);
+        }}
+      />
     </section>
   );
 }
@@ -743,9 +914,6 @@ export default function Home() {
                     : '沿著時間軸，搭上時光機吧！'}
                 </h1>
               </div>
-              <p>
-                從左往右讀時間；垂直亮線標示文體曾彼此影響，不代表前一種消失後才有下一種。
-              </p>
             </header>
             <section className="horizontal-timeline" aria-label="韻文時間軸">
               <div className="timeline-track">
@@ -793,10 +961,6 @@ export default function Home() {
                 })}
               </div>
             </section>
-            <p className="map-foot">
-              <span /> 時間定位　　
-              <b /> 文體影響關係
-            </p>
           </div>
         )}
       </main>
