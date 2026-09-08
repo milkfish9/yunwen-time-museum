@@ -23,7 +23,6 @@ import {
   ciPatterns,
   creationTopics,
   halls,
-  learningSources,
   type CiPattern,
 } from '@/data/ci-workshop';
 import {
@@ -153,58 +152,6 @@ function OriginPage({ next }: { next: () => void }) {
       </header>
 
       <div className={`origin-stage ${revealed ? 'revealed' : ''}`}>
-        <svg className="origin-map" viewBox="0 0 900 820" aria-hidden="true">
-          <defs>
-            <marker
-              id="music-arrowhead"
-              viewBox="0 0 10 10"
-              refX="8"
-              refY="5"
-              markerWidth="7"
-              markerHeight="7"
-              orient="auto-start-reverse"
-            >
-              <path d="M 0 0 L 10 5 L 0 10 Z" />
-            </marker>
-          </defs>
-          <path
-            className="map-land"
-            d="M204 132 318 70 451 103 545 82 666 151 730 255 693 334 741 426 669 501 652 610 537 690 419 667 329 728 238 659 164 574 188 468 119 374 158 278Z"
-          />
-          <path
-            className="map-central"
-            d="M322 245 432 201 548 241 600 334 566 442 493 525 379 505 295 423 276 326Z"
-          />
-          <path
-            className="map-border"
-            d="M286 235 C347 278 325 341 286 387 M570 215 C538 281 603 321 618 381 M290 499 C378 466 458 552 550 508"
-          />
-          <path
-            className="music-route route-west"
-            markerEnd="url(#music-arrowhead)"
-            d="M85 276 C175 254 217 288 304 320"
-          />
-          <path
-            className="music-route route-north"
-            markerEnd="url(#music-arrowhead)"
-            d="M435 55 C443 121 436 166 438 217"
-          />
-          <text className="map-label central-label" x="395" y="370">
-            中原
-          </text>
-          <text className="map-label foreign-label" x="76" y="230">
-            外族音樂
-          </text>
-          <text className="map-label foreign-label" x="405" y="43">
-            外族音樂
-          </text>
-          <text className="map-note" x="188" y="267">
-            ♪
-          </text>
-          <text className="map-note" x="441" y="142">
-            ♫
-          </text>
-        </svg>
         <button
           className="dynasty-card tang-card"
           aria-expanded={revealed}
@@ -1036,21 +983,6 @@ function CreatePage() {
         </div>
       )}
 
-      <details className="teaching-note">
-        <summary>教師備註與資料來源</summary>
-        <p>
-          「山坡羊」是曲牌，因此未放入本頁詞牌扭蛋。本活動採各代表作的句長做初階模具；同一詞牌可能另有變體，正式填詞也需處理平仄與押韻。
-        </p>
-        <ul>
-          {learningSources.map((source) => (
-            <li key={source.url}>
-              <a href={source.url} target="_blank" rel="noreferrer">
-                {source.label} ↗
-              </a>
-            </li>
-          ))}
-        </ul>
-      </details>
       <BoardAdminAccess
         onAuthenticated={(password) => {
           setAdminPassword(password);
@@ -1146,9 +1078,17 @@ export default function Home() {
                       <ShapeGlyph shape={hall.shape} />
                       <p>{hall.note}</p>
                       {hall.name === '詞' ? (
-                        <span className="enter-cta">
+                        <button
+                          className="enter-cta"
+                          onFocus={() => setHighlightedHall(hall.name)}
+                          onBlur={() => setHighlightedHall(null)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            navigate('origin');
+                          }}
+                        >
                           進入詞館 <ArrowRight />
-                        </span>
+                        </button>
                       ) : (
                         <span className="soon">後續開放</span>
                       )}
@@ -1164,16 +1104,17 @@ export default function Home() {
                         <i />
                       </span>
                       {hall.name === '詞' ? (
-                        <button
+                        <div
                           className="hall-card interactive-hall"
                           onPointerEnter={() => setHighlightedHall(hall.name)}
-                          onPointerLeave={() => setHighlightedHall(null)}
-                          onFocus={() => setHighlightedHall(hall.name)}
-                          onBlur={() => setHighlightedHall(null)}
-                          onClick={() => navigate('origin')}
+                          onPointerLeave={(event) => {
+                            if (event.pointerType === 'mouse')
+                              setHighlightedHall(null);
+                          }}
+                          onPointerUp={() => setHighlightedHall(hall.name)}
                         >
                           {content}
-                        </button>
+                        </div>
                       ) : (
                         <div className="hall-card">{content}</div>
                       )}
@@ -1185,6 +1126,9 @@ export default function Home() {
           </div>
         )}
       </main>
+      <footer className="site-credit">
+        本站由蘇牧盈老師發想設計，Codex協助製作。
+      </footer>
     </>
   );
 }

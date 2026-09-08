@@ -143,6 +143,15 @@ button[data-slot='button'] {
   color: #1b5a46;
   font-size: 13px;
 }
+.site-credit {
+  padding: 18px 4%;
+  border-top: 1px solid #b9cbd2;
+  background: #e5ecef;
+  color: #48616b;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+}
 .eyebrow,
 .step-label,
 .rail-title {
@@ -291,6 +300,7 @@ button[data-slot='button'] {
   text-align: left;
 }
 .enter-cta {
+  width: 100%;
   min-height: 46px;
   margin-top: auto;
   padding: 10px 17px;
@@ -298,7 +308,10 @@ button[data-slot='button'] {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  border: 0;
   border-radius: 10px;
+  background: #e7eef0;
+  color: #284954;
   font-weight: 700;
 }
 .timeline-stop.active .enter-cta {
@@ -473,59 +486,10 @@ button[data-slot='button'] {
   overflow: hidden;
   border: 1px solid #bed0d7;
   border-radius: 20px;
-  background: linear-gradient(180deg, #f6faf8ee, #eef5f2e8);
-}
-.origin-map {
-  position: absolute;
-  inset: -10px 0 auto 50%;
-  width: min(880px, 100%);
-  height: calc(100% + 20px);
-  transform: translateX(-50%);
-  opacity: 0.28;
-  pointer-events: none;
-}
-.map-land {
-  fill: #dce8d8;
-  stroke: #7f9b8a;
-  stroke-width: 5;
-}
-.map-central {
-  fill: #f6e3bc;
-  stroke: #976f4d;
-  stroke-width: 5;
-  stroke-dasharray: 11 8;
-}
-.map-border {
-  fill: none;
-  stroke: #7f5f49;
-  stroke-width: 4;
-  stroke-dasharray: 8 8;
-}
-.music-route {
-  fill: none;
-  stroke: #25776f;
-  stroke-width: 7;
-  stroke-linecap: round;
-  stroke-dasharray: 13 13;
-}
-.origin-map marker path {
-  fill: #25776f;
-}
-.map-label {
-  fill: #425d55;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-}
-.central-label {
-  font-size: 34px;
-}
-.foreign-label {
-  font-size: 24px;
-}
-.map-note {
-  fill: #176c66;
-  font-size: 38px;
-  font-weight: 900;
+  background:
+    linear-gradient(180deg, #f4efe2d9, #e6ebe3eb),
+    url('/tang-dynasty-map.png') center / 100% auto no-repeat;
+  background-blend-mode: normal, luminosity;
 }
 .dynasty-card {
   position: relative;
@@ -711,7 +675,7 @@ button[data-slot='button'] {
 }
 .revealed .moving-grid i {
   animation: shift-poem-cell 3.4s calc(0.85s + var(--delay)) ease-in-out
-    infinite alternate;
+    forwards;
 }
 .dancing-notes b {
   position: absolute;
@@ -1578,24 +1542,6 @@ button[data-slot='button'] {
   font-size: 13px;
   font-weight: 700;
 }
-.teaching-note {
-  margin-top: 24px;
-  padding: 15px 18px;
-  border-top: 1px solid var(--border);
-  color: #506973;
-  font-size: 14px;
-}
-.teaching-note summary {
-  cursor: pointer;
-  font-weight: 700;
-}
-.teaching-note p {
-  margin-top: 12px;
-}
-.teaching-note a {
-  color: var(--teal);
-}
-
 @keyframes grow-straight-arrow {
   to {
     transform: translateX(-50%) scaleY(1);
@@ -1737,8 +1683,59 @@ button[data-slot='button'] {
   .home-intro h1 {
     font-size: 35px;
   }
+  .horizontal-timeline {
+    overflow: visible;
+    padding-bottom: 22px;
+  }
   .timeline-track {
-    min-width: 1040px;
+    min-width: 0;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 0 0 18px;
+  }
+  .timeline-track::before {
+    left: 20px;
+    right: auto;
+    top: 20px;
+    bottom: 14px;
+    width: 4px;
+    height: auto;
+    background: linear-gradient(180deg, #7897a4, #6e9e99 65%, #d6a163);
+  }
+  .timeline-track::after {
+    content: '⌄';
+    left: 8px;
+    right: auto;
+    top: auto;
+    bottom: -17px;
+  }
+  .timeline-stop {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    grid-template-areas:
+      'dot era'
+      '. card';
+    align-items: start;
+  }
+  .timeline-stop.active {
+    transform: translateX(4px);
+  }
+  .era-label {
+    grid-area: era;
+    height: auto;
+    padding: 3px 0 7px;
+    text-align: left;
+  }
+  .time-dot {
+    grid-area: dot;
+    margin: 5px auto 0;
+  }
+  .hall-card {
+    grid-area: card;
+    min-height: 220px;
+  }
+  .timeline-stop.active .hall-card {
+    min-height: 230px;
   }
   .museum-shell {
     display: block;
