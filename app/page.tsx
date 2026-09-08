@@ -285,7 +285,7 @@ function WritingMold({
 
   async function publish() {
     if (!author.trim()) {
-      setPublishMessage('請先留下詞人名號或座號暱稱。');
+      setPublishMessage('請先填寫自己的名字。');
       return;
     }
     setPublishing(true);
@@ -405,14 +405,16 @@ function WritingMold({
       {complete && (
         <div className="publish-booth">
           <div>
-            <span className="step-label">第四步 · 留名張貼</span>
-            <label htmlFor="poet-name">詞人名號或座號暱稱</label>
+            <span className="step-label">第四步 · 寫上名字再張貼</span>
+            <label htmlFor="poet-name">你的名字（必填）</label>
             <input
               id="poet-name"
               value={author}
               maxLength={12}
               onChange={(event) => setAuthor(event.target.value)}
-              placeholder="例如：七號小詞人"
+              placeholder="請輸入自己的名字"
+              autoComplete="name"
+              required
             />
           </div>
           <Button onClick={publish} disabled={publishing}>

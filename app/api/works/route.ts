@@ -80,7 +80,7 @@ export async function POST(request: Request) {
       !validLines
     ) {
       return response(
-        { message: '作品資料不完整，請檢查詞人名、詞牌、題目與每句字數。' },
+        { message: '作品資料不完整，請檢查姓名、詞牌、題目與每句字數。' },
         { status: 400 },
       );
     }
