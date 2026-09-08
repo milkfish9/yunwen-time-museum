@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import {
   ArrowLeft,
   ArrowRight,
@@ -588,17 +589,15 @@ function CreatePage() {
       </header>
 
       <div className="poet-roleplay" aria-label="宋朝小詞人正在想像抽到的旋律">
-        <div className="chibi-poet" aria-hidden="true">
-          <span className="hair" />
-          <span className="face">
-            <i />
-            <i />
-            <b />
-          </span>
-          <span className="robe">
-            <i />
-          </span>
-          <span className="thinking-hand" />
+        <div className="poet-portrait" aria-hidden="true">
+          <Image
+            src="/ci-poet-girl-v2.png"
+            alt=""
+            width={1114}
+            height={1376}
+            sizes="(max-width: 700px) 168px, 222px"
+            priority
+          />
         </div>
         <div className="speech-bubble">
           希望可以抽到快樂的旋律。

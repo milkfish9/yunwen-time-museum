@@ -684,7 +684,7 @@ button[data-slot='button'] {
 /* Page 2: gacha, wheel, and writing mold. */
 .poet-roleplay {
   position: relative;
-  min-height: 190px;
+  min-height: 250px;
   margin: -8px 0 24px;
   display: flex;
   align-items: center;
@@ -695,115 +695,22 @@ button[data-slot='button'] {
   border-radius: 20px;
   background: linear-gradient(135deg, #e7f6ef, #fff7dc);
 }
-.chibi-poet {
+.poet-portrait {
   position: relative;
-  width: 132px;
-  height: 172px;
+  width: 230px;
+  height: 245px;
   flex: 0 0 auto;
+  align-self: end;
+  overflow: hidden;
+  filter: drop-shadow(0 12px 11px #21473d2c);
 }
-.chibi-poet .hair {
-  position: absolute;
-  z-index: 1;
-  top: 13px;
-  left: 25px;
-  width: 85px;
-  height: 93px;
-  border-radius: 50% 50% 45% 45%;
-  background: #203945;
-  box-shadow:
-    -18px 31px 0 -8px #203945,
-    20px 31px 0 -8px #203945;
-}
-.chibi-poet .hair::before {
-  content: '';
-  position: absolute;
-  left: 31px;
-  top: -13px;
-  width: 28px;
-  height: 24px;
-  border-radius: 12px 12px 4px 4px;
-  background: #eb8156;
-  box-shadow: 0 -6px 0 #203945;
-}
-.chibi-poet .face {
-  position: absolute;
-  z-index: 2;
-  top: 37px;
-  left: 34px;
-  width: 68px;
-  height: 65px;
-  border-radius: 45% 45% 50% 50%;
-  background: #ffd9bd;
-}
-.chibi-poet .face i {
-  position: absolute;
-  top: 28px;
-  left: 17px;
-  width: 8px;
-  height: 11px;
-  border-radius: 50%;
-  background: #243b45;
-}
-.chibi-poet .face i:nth-child(2) {
-  left: 44px;
-}
-.chibi-poet .face b {
-  position: absolute;
-  left: 32px;
-  top: 46px;
-  width: 10px;
-  height: 5px;
-  border-bottom: 2px solid #a8564a;
-  border-radius: 50%;
-}
-.chibi-poet .robe {
-  position: absolute;
-  z-index: 1;
-  left: 16px;
-  bottom: 0;
-  width: 104px;
-  height: 82px;
-  border-radius: 42px 42px 12px 12px;
-  background: #3f9384;
-  box-shadow: inset 0 -15px 0 #2f796e;
-}
-.chibi-poet .robe::before,
-.chibi-poet .robe::after {
-  content: '';
-  position: absolute;
-  top: 3px;
-  width: 48px;
-  height: 70px;
-  border-radius: 25px;
-  border: 8px solid #3f9384;
-}
-.chibi-poet .robe::before {
-  left: -17px;
-  transform: rotate(25deg);
-}
-.chibi-poet .robe::after {
-  right: -17px;
-  transform: rotate(-25deg);
-}
-.chibi-poet .robe i {
+.poet-portrait img {
   position: absolute;
   left: 50%;
-  top: 9px;
-  width: 4px;
-  height: 66px;
-  background: #d8f1c7;
+  top: 2px;
+  width: 222px;
+  height: auto;
   transform: translateX(-50%);
-}
-.chibi-poet .thinking-hand {
-  position: absolute;
-  z-index: 4;
-  right: 12px;
-  top: 76px;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #ffd9bd;
-  box-shadow: -11px 17px 0 -5px #ffd9bd;
 }
 .speech-bubble {
   position: relative;
@@ -1633,6 +1540,13 @@ button[data-slot='button'] {
   .poet-roleplay {
     padding: 18px 12px;
     gap: 10px;
+  }
+  .poet-portrait {
+    width: 150px;
+    height: 190px;
+  }
+  .poet-portrait img {
+    width: 168px;
   }
   .speech-bubble {
     max-width: 210px;
