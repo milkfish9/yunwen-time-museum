@@ -545,6 +545,7 @@ function CreatePage() {
   const [wheelSpinning, setWheelSpinning] = useState(false);
   const [wheelTurns, setWheelTurns] = useState(0);
   const [boardRevision, setBoardRevision] = useState(0);
+  const [boardVisible, setBoardVisible] = useState(false);
   const timers = useRef<number[]>([]);
 
   useEffect(
@@ -638,11 +639,18 @@ function CreatePage() {
           key={`${pattern.id}-${topic}`}
           pattern={pattern}
           topic={topic}
-          onPublished={() => setBoardRevision((value) => value + 1)}
+          onPublished={() => {
+            setBoardVisible(true);
+            setBoardRevision((value) => value + 1);
+          }}
         />
       )}
 
-      <BianjingBoard revision={boardRevision} />
+      {boardVisible && (
+        <div className="board-arrival">
+          <BianjingBoard revision={boardRevision} />
+        </div>
+      )}
 
       <details className="teaching-note">
         <summary>教師備註與資料來源</summary>
