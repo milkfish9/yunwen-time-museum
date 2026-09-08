@@ -46,8 +46,7 @@ export const ciPatterns: CiPattern[] = [
       [7, 5, 7, 9],
       [7, 5, 7, 9],
     ],
-    source:
-      'https://zh.wikisource.org/zh-hant/虞美人_(春花秋月何時了)',
+    source: 'https://zh.wikisource.org/zh-hant/虞美人_(春花秋月何時了)',
   },
   {
     id: 'nanxiangzi',
@@ -85,8 +84,7 @@ export const ciPatterns: CiPattern[] = [
       [3, 3, 7, 3, 3, 4, 4, 1, 1, 1],
       [3, 3, 7, 3, 3, 4, 4, 1, 1, 1],
     ],
-    source:
-      'https://zh.wikisource.org/zh-hant/詞律_(四庫全書本)/卷08',
+    source: 'https://zh.wikisource.org/zh-hant/詞律_(四庫全書本)/卷08',
   },
 ];
 
@@ -94,6 +92,7 @@ export const creationTopics = [
   '上學要遲到了',
   '考試考砸了',
   '出去玩好開心',
+  '自由創作',
 ] as const;
 
 export const learningSources = [

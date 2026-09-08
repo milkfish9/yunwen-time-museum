@@ -2,15 +2,17 @@
 
 import { useEffect, useRef, useState } from 'react';
 import {
-  ArrowDown,
   ArrowLeft,
   ArrowRight,
   Check,
   CircleDot,
   Dices,
   Grid2X2,
+  Megaphone,
   Music2,
+  RefreshCw,
   RotateCcw,
+  Send,
   Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -28,6 +30,14 @@ import {
 } from '@/lib/ci-workshop';
 
 type PageId = 'origin' | 'create';
+type PublishedWork = {
+  id: string;
+  author: string;
+  tune: string;
+  topic: string;
+  lines: string[];
+  createdAt: number;
+};
 const PAGES: { id: PageId; label: string; title: string }[] = [
   { id: 'origin', label: '01 詞的由來', title: '唐詩怎麼走向宋詞？' },
   { id: 'create', label: '02 填詞工作室', title: '抽一副詞牌，寫自己的題目' },
@@ -107,27 +117,32 @@ function OriginPage({ next }: { next: () => void }) {
           {!revealed && <em>點我啟動變化</em>}
         </button>
 
-        <div className="cause cause-left" aria-hidden={!revealed}>
-          <Music2 />
-          <span>接受外來音樂影響</span>
-        </div>
-        <div className="cause cause-right" aria-hidden={!revealed}>
-          <Sparkles />
-          <span>改變唐詩形貌</span>
-        </div>
-
         <div className="birth-arrow" aria-hidden={!revealed}>
-          <span />
-          <ArrowDown />
+          <div className="flow-label">
+            <Sparkles /> 轉化近體詩，並受到外來音樂影響
+          </div>
+          <svg viewBox="0 0 520 120" aria-hidden="true">
+            <path d="M260 4 C260 22, 95 16, 95 61 C95 100, 260 82, 260 108" />
+            <path d="M239 88 L260 110 L282 88" />
+          </svg>
         </div>
 
         <div className="dynasty-card song-card" aria-hidden={!revealed}>
           <span className="dynasty">宋朝</span>
           <strong>詞</strong>
           <ShapeGlyph shape={[6, 6, 5, 6, 2, 2, 6]} />
-          <span className="all-music">
-            <Music2 /> 依詞牌曲調填入歌詞
+          <span
+            className="music-sample all-solid"
+            aria-label="所有的詞都可入樂"
+          >
+            <Music2 />
+            <Music2 />
+            <Music2 />
+            <Music2 />
           </span>
+          <small className="song-explain">
+            所有的詞都可入樂，每一首詞＝一首歌曲
+          </small>
         </div>
       </div>
 
@@ -161,16 +176,28 @@ function CapsuleMachine({
   return (
     <section className="draw-panel gacha-panel">
       <div className={`gacha-machine ${phase}`} aria-hidden="true">
+        <div className="gacha-topper">
+          <Sparkles />
+        </div>
         <div className="gacha-globe">
           {ciPatterns.map((item, index) => (
-            <i key={item.id} style={{ '--capsule': index } as React.CSSProperties} />
+            <i
+              key={item.id}
+              style={{ '--capsule': index } as React.CSSProperties}
+            />
           ))}
         </div>
         <div className="gacha-neck" />
         <div className="gacha-body">
-          <span className="gacha-knob"><RotateCcw /></span>
-          <span className="gacha-mouth" />
+          <span className="gacha-knob">
+            <RotateCcw />
+          </span>
+          <span className="gacha-mouth">
+            <i />
+          </span>
         </div>
+        <span className="gacha-foot left" />
+        <span className="gacha-foot right" />
         <div className="falling-capsule" />
       </div>
       <div>
@@ -178,7 +205,12 @@ function CapsuleMachine({
         <h2>{pattern ? pattern.name : '扭出今天的詞牌'}</h2>
         <p>五顆扭蛋裝著五副不同的詞牌格式。</p>
         <Button onClick={spin} disabled={phase === 'spinning'}>
-          <Dices /> {phase === 'spinning' ? '扭蛋滾動中…' : pattern ? '再扭一次' : '轉動扭蛋'}
+          <Dices />{' '}
+          {phase === 'spinning'
+            ? '扭蛋滾動中…'
+            : pattern
+              ? '再扭一次'
+              : '轉動扭蛋'}
         </Button>
       </div>
     </section>
@@ -200,10 +232,14 @@ function TopicWheel({
     <section className="draw-panel wheel-panel">
       <div className="wheel-wrap" aria-hidden="true">
         <span className="wheel-pointer" />
-        <div className="topic-wheel" style={{ transform: `rotate(${turns}deg)` }}>
+        <div
+          className="topic-wheel"
+          style={{ transform: `rotate(${turns}deg)` }}
+        >
           <span>遲到</span>
           <span>考砸</span>
           <span>出遊</span>
+          <span>自由</span>
         </div>
         <CircleDot className="wheel-hub" />
       </div>
@@ -212,7 +248,8 @@ function TopicWheel({
         <h2>{topic ?? '轉出真正要寫的題目'}</h2>
         <p>詞牌管格式；轉盤抽到的才是這次內容。</p>
         <Button onClick={spin} disabled={spinning}>
-          <RotateCcw /> {spinning ? '轉盤旋轉中…' : topic ? '再轉一次' : '轉動題目盤'}
+          <RotateCcw />{' '}
+          {spinning ? '轉盤旋轉中…' : topic ? '再轉一次' : '轉動題目盤'}
         </Button>
       </div>
     </section>
@@ -222,19 +259,56 @@ function TopicWheel({
 function WritingMold({
   pattern,
   topic,
+  onPublished,
 }: {
   pattern: CiPattern;
   topic: string;
+  onPublished: () => void;
 }) {
   const [lines, setLines] = useState<string[]>(() =>
     Array(flattenPattern(pattern).length).fill(''),
   );
-  const [message, setMessage] = useState('題目已貼好。現在把你的內容逐句填進模具。');
+  const [message, setMessage] = useState(
+    '題目已貼好。現在把你的內容逐句填進模具。',
+  );
   const [complete, setComplete] = useState(false);
+  const [author, setAuthor] = useState('');
+  const [publishing, setPublishing] = useState(false);
+  const [publishMessage, setPublishMessage] = useState('');
 
   function change(index: number, value: string) {
-    setLines((current) => current.map((line, i) => (i === index ? value : line)));
+    setLines((current) =>
+      current.map((line, i) => (i === index ? value : line)),
+    );
     setComplete(false);
+  }
+
+  async function publish() {
+    if (!author.trim()) {
+      setPublishMessage('請先留下詞人名號或座號暱稱。');
+      return;
+    }
+    setPublishing(true);
+    setPublishMessage('作品正在送往汴京城……');
+    try {
+      const result = await fetch('/api/works', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ author, tune: pattern.name, topic, lines }),
+      });
+      const data = (await result.json()) as { message?: string };
+      if (!result.ok) throw new Error(data.message);
+      setPublishMessage('張貼成功！全城的詞人都能在佈告欄看見這首作品。');
+      onPublished();
+    } catch (error) {
+      setPublishMessage(
+        error instanceof Error && error.message
+          ? error.message
+          : '作品沒有送達，請再試一次。',
+      );
+    } finally {
+      setPublishing(false);
+    }
   }
 
   function inspect() {
@@ -268,7 +342,7 @@ function WritingMold({
         <div>
           <span className="step-label">第三步 · 自己填詞</span>
           <h2 id="writing-title">把題目寫進「{pattern.name}」的形狀</h2>
-          <p>{pattern.guide}。本次先練句長；平仄、押韻留待教師帶領。</p>
+          <p>{pattern.guide}</p>
         </div>
         <a href={pattern.source} target="_blank" rel="noreferrer">
           查看代表作 ↗
@@ -282,7 +356,13 @@ function WritingMold({
             .reduce((sum, part) => sum + part.length, 0);
           return (
             <fieldset key={stanzaIndex} className="stanza">
-              <legend>{pattern.stanzas.length > 1 ? `第 ${stanzaIndex + 1} 片` : '全闋'}</legend>
+              <legend>
+                {pattern.stanzas.length > 1
+                  ? stanzaIndex === 0
+                    ? '上闋'
+                    : '下闋'
+                  : '全闋'}
+              </legend>
               {stanza.map((length, lineIndex) => {
                 const index = offset + lineIndex;
                 const count = countWritingCharacters(lines[index] ?? '');
@@ -295,7 +375,15 @@ function WritingMold({
                       placeholder={`${length} 字`}
                       aria-invalid={count > 0 && count !== length}
                     />
-                    <b className={count === length ? 'matched' : count > length ? 'over' : ''}>
+                    <b
+                      className={
+                        count === length
+                          ? 'matched'
+                          : count > length
+                            ? 'over'
+                            : ''
+                      }
+                    >
                       {count} / {length}
                     </b>
                   </label>
@@ -305,17 +393,145 @@ function WritingMold({
           );
         })}
       </div>
-      <div className={`writing-feedback ${complete ? 'complete' : ''}`} aria-live="polite">
+      <div
+        className={`writing-feedback ${complete ? 'complete' : ''}`}
+        aria-live="polite"
+      >
         <p>{message}</p>
         <Button onClick={inspect}>
           <Check /> 檢查整副模具
         </Button>
       </div>
       {complete && (
-        <p className="saved-note">
-          草稿已保存在這台裝置。上傳位置等教師指定後，再接上這裡的作品送出功能。
-        </p>
+        <div className="publish-booth">
+          <div>
+            <span className="step-label">第四步 · 留名張貼</span>
+            <label htmlFor="poet-name">詞人名號或座號暱稱</label>
+            <input
+              id="poet-name"
+              value={author}
+              maxLength={12}
+              onChange={(event) => setAuthor(event.target.value)}
+              placeholder="例如：七號小詞人"
+            />
+          </div>
+          <Button onClick={publish} disabled={publishing}>
+            <Send /> {publishing ? '送往汴京城中…' : '發佈到汴京城佈告欄'}
+          </Button>
+          {publishMessage && <p aria-live="polite">{publishMessage}</p>}
+        </div>
       )}
+    </section>
+  );
+}
+
+function BianjingBoard({ revision }: { revision: number }) {
+  const [works, setWorks] = useState<PublishedWork[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState('');
+
+  async function load() {
+    setLoading(true);
+    setMessage('');
+    try {
+      const result = await fetch('/api/works', { cache: 'no-store' });
+      const data = (await result.json()) as {
+        works?: PublishedWork[];
+        message?: string;
+      };
+      if (!result.ok) throw new Error(data.message);
+      setWorks(data.works ?? []);
+    } catch (error) {
+      setMessage(
+        error instanceof Error && error.message
+          ? error.message
+          : '佈告欄暫時無法開啟。',
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/works', { cache: 'no-store' })
+      .then(async (result) => {
+        const data = (await result.json()) as {
+          works?: PublishedWork[];
+          message?: string;
+        };
+        if (!result.ok) throw new Error(data.message);
+        if (active) {
+          setWorks(data.works ?? []);
+          setLoading(false);
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setMessage(
+            error instanceof Error && error.message
+              ? error.message
+              : '佈告欄暫時無法開啟。',
+          );
+          setLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [revision]);
+
+  return (
+    <section className="city-board" aria-labelledby="city-board-title">
+      <header>
+        <div>
+          <p className="eyebrow">全班共享作品區</p>
+          <h2 id="city-board-title">
+            <Megaphone /> 汴京城佈告欄
+          </h2>
+          <p>城裡新張貼的詞都在這裡。讀讀別人的詞牌如何裝進不同題目。</p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => void load()}
+          disabled={loading}
+        >
+          <RefreshCw /> {loading ? '巡城中…' : '重新整理佈告欄'}
+        </Button>
+      </header>
+      {message && <output className="board-message">{message}</output>}
+      {!loading && !message && works.length === 0 && (
+        <div className="empty-board">
+          <Sparkles />
+          <strong>城門剛開，等你張貼第一首詞！</strong>
+        </div>
+      )}
+      <div className="work-wall">
+        {works.map((work) => (
+          <article className="posted-work" key={work.id}>
+            <div className="work-seal">詞</div>
+            <p className="post-meta">
+              <span>{work.tune}</span>
+              <span>題目・{work.topic}</span>
+            </p>
+            <h3>{work.author}</h3>
+            <div className="poem-lines">
+              {work.lines.map((line, index) => (
+                <span key={`${work.id}-${index}`}>{line}</span>
+              ))}
+            </div>
+            <time dateTime={new Date(work.createdAt).toISOString()}>
+              {new Intl.DateTimeFormat('zh-TW', {
+                month: 'numeric',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              }).format(work.createdAt)}{' '}
+              張貼
+            </time>
+          </article>
+        ))}
+      </div>
     </section>
   );
 }
@@ -326,6 +542,7 @@ function CreatePage() {
   const [topic, setTopic] = useState<string | null>(null);
   const [wheelSpinning, setWheelSpinning] = useState(false);
   const [wheelTurns, setWheelTurns] = useState(0);
+  const [boardRevision, setBoardRevision] = useState(0);
   const timers = useRef<number[]>([]);
 
   useEffect(
@@ -350,7 +567,7 @@ function CreatePage() {
     setWheelSpinning(true);
     setTopic(null);
     const index = randomIndex(creationTopics.length);
-    setWheelTurns((turns) => turns + 1080 + index * 120 + 35);
+    setWheelTurns((turns) => turns + 1080 + index * 90 + 35);
     timers.current.push(
       window.setTimeout(() => {
         setTopic(creationTopics[index]);
@@ -363,15 +580,37 @@ function CreatePage() {
     <section className="lesson create-lesson" aria-labelledby="create-title">
       <header className="lesson-heading compact-heading">
         <p className="eyebrow">第二幕 · 今天你是填詞人</p>
-        <h1 id="create-title">先抽詞牌，再抽題目</h1>
-        <p>先決定文字要住進哪副模具，再決定今天真正要寫什麼。</p>
+        <h1 id="create-title">你現在是個宋朝的詞人，來創作吧！</h1>
+        <p>首先，先抽個詞牌（音樂旋律）吧！</p>
       </header>
+
+      <div className="poet-roleplay" aria-label="宋朝小詞人正在想像抽到的旋律">
+        <div className="chibi-poet" aria-hidden="true">
+          <span className="hair" />
+          <span className="face">
+            <i />
+            <i />
+            <b />
+          </span>
+          <span className="robe">
+            <i />
+          </span>
+          <span className="thinking-hand" />
+        </div>
+        <div className="speech-bubble">
+          希望可以抽到快樂的旋律。
+          <Music2 />
+        </div>
+      </div>
 
       <CapsuleMachine phase={phase} pattern={pattern} spin={spinCapsule} />
 
       {pattern && (
         <div className="capsule-reveal" aria-live="polite">
-          <div className="open-capsule"><span /><span /></div>
+          <div className="open-capsule">
+            <span />
+            <span />
+          </div>
           <div>
             <span className="step-label">扭蛋打開了</span>
             <strong>{pattern.name}</strong>
@@ -397,8 +636,11 @@ function CreatePage() {
           key={`${pattern.id}-${topic}`}
           pattern={pattern}
           topic={topic}
+          onPublished={() => setBoardRevision((value) => value + 1)}
         />
       )}
+
+      <BianjingBoard revision={boardRevision} />
 
       <details className="teaching-note">
         <summary>教師備註與資料來源</summary>
@@ -408,7 +650,9 @@ function CreatePage() {
         <ul>
           {learningSources.map((source) => (
             <li key={source.url}>
-              <a href={source.url} target="_blank" rel="noreferrer">{source.label} ↗</a>
+              <a href={source.url} target="_blank" rel="noreferrer">
+                {source.label} ↗
+              </a>
             </li>
           ))}
         </ul>
@@ -419,6 +663,7 @@ function CreatePage() {
 
 export default function Home() {
   const [page, setPage] = useState<PageId | null>(null);
+  const [highlightedHall, setHighlightedHall] = useState<string | null>(null);
 
   useEffect(() => {
     const route = () => {
@@ -438,7 +683,9 @@ export default function Home() {
 
   return (
     <>
-      <a href="#main-content" className="skip-link">跳至主要內容</a>
+      <a href="#main-content" className="skip-link">
+        跳至主要內容
+      </a>
       <header className="site-header">
         <button className="brand" onClick={() => navigate(null)}>
           <Grid2X2 /> 韻文時空館
@@ -481,35 +728,65 @@ export default function Home() {
             <header className="home-intro">
               <div>
                 <p className="eyebrow">六個時代座標 · 一條韻文時間線</p>
-                <h1>沿著時間，走進詞的誕生現場。</h1>
+                <h1 aria-live="polite">
+                  {highlightedHall === '詞'
+                    ? '走進詞的誕生現場'
+                    : '沿著時間軸，搭上時光機吧！'}
+                </h1>
               </div>
-              <p>從左往右讀時間；垂直亮線標示文體曾彼此影響，不代表前一種消失後才有下一種。</p>
+              <p>
+                從左往右讀時間；垂直亮線標示文體曾彼此影響，不代表前一種消失後才有下一種。
+              </p>
             </header>
             <section className="horizontal-timeline" aria-label="韻文時間軸">
               <div className="timeline-track">
-                {halls.map((hall, index) => (
-                  <article className={`timeline-stop ${hall.name === '詞' ? 'active' : ''}`} key={hall.name}>
-                    <span className="era-label">{hall.era}</span>
-                    <span className="time-dot"><i /></span>
-                    <div className="hall-card">
+                {halls.map((hall, index) => {
+                  const content = (
+                    <>
                       <span className="hall-number">0{index + 1}</span>
                       <h2>{hall.name}</h2>
                       <ShapeGlyph shape={hall.shape} />
                       <p>{hall.note}</p>
                       {hall.name === '詞' ? (
-                        <Button onClick={() => navigate('origin')}>
+                        <span className="enter-cta">
                           進入詞館 <ArrowRight />
-                        </Button>
+                        </span>
                       ) : (
                         <span className="soon">後續開放</span>
                       )}
-                    </div>
-                  </article>
-                ))}
+                    </>
+                  );
+                  return (
+                    <article
+                      className={`timeline-stop ${highlightedHall === hall.name ? 'active' : ''}`}
+                      key={hall.name}
+                    >
+                      <span className="era-label">{hall.era}</span>
+                      <span className="time-dot">
+                        <i />
+                      </span>
+                      {hall.name === '詞' ? (
+                        <button
+                          className="hall-card interactive-hall"
+                          onPointerEnter={() => setHighlightedHall(hall.name)}
+                          onPointerLeave={() => setHighlightedHall(null)}
+                          onFocus={() => setHighlightedHall(hall.name)}
+                          onBlur={() => setHighlightedHall(null)}
+                          onClick={() => navigate('origin')}
+                        >
+                          {content}
+                        </button>
+                      ) : (
+                        <div className="hall-card">{content}</div>
+                      )}
+                    </article>
+                  );
+                })}
               </div>
             </section>
             <p className="map-foot">
-              <span /> 時間定位　　<b /> 文體影響關係
+              <span /> 時間定位　　
+              <b /> 文體影響關係
             </p>
           </div>
         )}
