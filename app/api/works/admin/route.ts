@@ -15,21 +15,68 @@ function response(data: unknown, init?: ResponseInit) {
   return Response.json(data, { ...init, headers });
 }
 
-async function passwordMatches(password: unknown) {
-  const expected = bindings().BOARD_ADMIN_PASSWORD_HASH;
-  if (!expected || typeof password !== 'string' || password.length > 128)
-    return false;
+async function hashPassword(password: string) {
   const bytes = new TextEncoder().encode(password);
   const digest = await crypto.subtle.digest('SHA-256', bytes);
-  const actual = Array.from(new Uint8Array(digest), (byte) =>
+  return Array.from(new Uint8Array(digest), (byte) =>
     byte.toString(16).padStart(2, '0'),
   ).join('');
+}
+
+async function currentPasswordHash() {
+  const custom = await bindings()
+    .DB.prepare('SELECT password_hash FROM board_admin_settings WHERE id = 1')
+    .first<{ password_hash: string }>();
+  return custom?.password_hash ?? bindings().BOARD_ADMIN_PASSWORD_HASH;
+}
+
+async function passwordMatches(password: unknown) {
+  if (typeof password !== 'string' || password.length > 128) return false;
+  const expected = await currentPasswordHash();
+  if (!expected) return false;
+  const actual = await hashPassword(password);
   if (actual.length !== expected.length) return false;
   let difference = 0;
   for (let index = 0; index < actual.length; index += 1) {
     difference |= actual.charCodeAt(index) ^ expected.charCodeAt(index);
   }
   return difference === 0;
+}
+
+export async function PUT(request: Request) {
+  try {
+    const body = (await request.json()) as {
+      currentPassword?: unknown;
+      newPassword?: unknown;
+    };
+    if (!(await passwordMatches(body.currentPassword))) {
+      return response({ message: '目前的管理密碼不正確。' }, { status: 401 });
+    }
+    if (
+      typeof body.newPassword !== 'string' ||
+      body.newPassword.length < 8 ||
+      body.newPassword.length > 64
+    ) {
+      return response(
+        { message: '新密碼請設定為 8 至 64 個字元。' },
+        { status: 400 },
+      );
+    }
+    const passwordHash = await hashPassword(body.newPassword);
+    await bindings()
+      .DB.prepare(
+        `INSERT INTO board_admin_settings (id, password_hash, updated_at)
+         VALUES (1, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET
+           password_hash = excluded.password_hash,
+           updated_at = excluded.updated_at`,
+      )
+      .bind(passwordHash, Date.now())
+      .run();
+    return response({ changed: true });
+  } catch {
+    return response({ message: '密碼尚未更新，請再試一次。' }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {

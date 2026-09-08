@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import Image from 'next/image';
 import {
   ArrowLeft,
@@ -92,6 +92,57 @@ function TimelineRail() {
   );
 }
 
+const transformationRows = [5, 5, 4, 5, 2, 2, 5];
+
+function TransformationTheatre() {
+  const cells = Array.from({ length: 28 }, (_, index) => {
+    const startRow = Math.floor(index / 7);
+    const startColumn = index % 7;
+    let cursor = 0;
+    let endRow = 0;
+    let endColumn = 0;
+    for (let row = 0; row < transformationRows.length; row += 1) {
+      if (index < cursor + transformationRows[row]) {
+        endRow = row;
+        endColumn = index - cursor;
+        break;
+      }
+      cursor += transformationRows[row];
+    }
+    const endWidth = transformationRows[endRow] * 18 - 5;
+    return {
+      index,
+      style: {
+        '--from-x': `${startColumn * 18 - 54}px`,
+        '--from-y': `${startRow * 18 - 27}px`,
+        '--to-x': `${endColumn * 18 - endWidth / 2}px`,
+        '--to-y': `${endRow * 15 - 45}px`,
+        '--delay': `${index * 24}ms`,
+      } as CSSProperties,
+    };
+  });
+
+  return (
+    <div
+      className="transformation-theatre"
+      aria-label="七言四句逐格變化為詞的長短句"
+    >
+      <span className="theatre-label start-label">整齊的七言四句</span>
+      <div className="moving-grid" aria-hidden="true">
+        {cells.map((cell) => (
+          <i key={cell.index} style={cell.style} />
+        ))}
+      </div>
+      <span className="theatre-label end-label">依旋律挪成長短句</span>
+      <div className="dancing-notes" aria-hidden="true">
+        {['♪', '♫', '♬', '♪', '♩', '♫', '♬', '♪'].map((note, index) => (
+          <b key={`${note}-${index}`}>{note}</b>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function OriginPage({ next }: { next: () => void }) {
   const [revealed, setRevealed] = useState(false);
   return (
@@ -99,10 +150,61 @@ function OriginPage({ next }: { next: () => void }) {
       <header className="lesson-heading">
         <p className="eyebrow">第一幕 · 點擊展開</p>
         <h1 id="origin-title">唐詩怎麼走向宋詞？</h1>
-        <p>先點「唐朝・近體詩」，看兩股力量怎麼把詩的形貌拉向詞。</p>
       </header>
 
       <div className={`origin-stage ${revealed ? 'revealed' : ''}`}>
+        <svg className="origin-map" viewBox="0 0 900 820" aria-hidden="true">
+          <defs>
+            <marker
+              id="music-arrowhead"
+              viewBox="0 0 10 10"
+              refX="8"
+              refY="5"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto-start-reverse"
+            >
+              <path d="M 0 0 L 10 5 L 0 10 Z" />
+            </marker>
+          </defs>
+          <path
+            className="map-land"
+            d="M204 132 318 70 451 103 545 82 666 151 730 255 693 334 741 426 669 501 652 610 537 690 419 667 329 728 238 659 164 574 188 468 119 374 158 278Z"
+          />
+          <path
+            className="map-central"
+            d="M322 245 432 201 548 241 600 334 566 442 493 525 379 505 295 423 276 326Z"
+          />
+          <path
+            className="map-border"
+            d="M286 235 C347 278 325 341 286 387 M570 215 C538 281 603 321 618 381 M290 499 C378 466 458 552 550 508"
+          />
+          <path
+            className="music-route route-west"
+            markerEnd="url(#music-arrowhead)"
+            d="M85 276 C175 254 217 288 304 320"
+          />
+          <path
+            className="music-route route-north"
+            markerEnd="url(#music-arrowhead)"
+            d="M435 55 C443 121 436 166 438 217"
+          />
+          <text className="map-label central-label" x="395" y="370">
+            中原
+          </text>
+          <text className="map-label foreign-label" x="76" y="230">
+            外族音樂
+          </text>
+          <text className="map-label foreign-label" x="405" y="43">
+            外族音樂
+          </text>
+          <text className="map-note" x="188" y="267">
+            ♪
+          </text>
+          <text className="map-note" x="441" y="142">
+            ♫
+          </text>
+        </svg>
         <button
           className="dynasty-card tang-card"
           aria-expanded={revealed}
@@ -111,24 +213,23 @@ function OriginPage({ next }: { next: () => void }) {
           <span className="dynasty">唐朝</span>
           <strong>近體詩</strong>
           <ShapeGlyph shape={[7, 7, 7, 7]} />
-          <span className="music-sample" aria-label="有些近體詩可以入樂">
-            <Music2 className="sounding" />
-            <Music2 className="sounding" />
-            <Music2 className="silent" />
-            <Music2 className="silent" />
+          <span className="tang-music-row">
+            <span className="music-sample" aria-label="有些近體詩可以入樂">
+              <Music2 className="sounding" />
+              <Music2 className="sounding" />
+              <Music2 className="silent" />
+              <Music2 className="silent" />
+            </span>
+            <small>部分作品可入樂</small>
           </span>
-          <small>部分作品可入樂</small>
-          {!revealed && <em>點我啟動變化</em>}
+          {!revealed && <em>點我，進展成【詞】吧！</em>}
         </button>
 
         <div className="birth-arrow" aria-hidden={!revealed}>
+          <div className="straight-arrow" />
           <div className="flow-label">
-            <Sparkles /> 轉化近體詩，並受到外來音樂影響
+            <TransformationTheatre />
           </div>
-          <svg viewBox="0 0 520 120" aria-hidden="true">
-            <path d="M260 4 C260 22, 95 16, 95 61 C95 100, 260 82, 260 108" />
-            <path d="M239 88 L260 110 L282 88" />
-          </svg>
         </div>
 
         <div className="dynasty-card song-card" aria-hidden={!revealed}>
@@ -435,16 +536,24 @@ function BianjingBoard({
   revision,
   adminPassword,
   onExitAdmin,
+  onPasswordChanged,
 }: {
   revision: number;
   adminPassword?: string;
   onExitAdmin?: () => void;
+  onPasswordChanged?: (password: string) => void;
 }) {
   const [works, setWorks] = useState<PublishedWork[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordMessage, setPasswordMessage] = useState('');
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [adminToolsOpen, setAdminToolsOpen] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -523,6 +632,39 @@ function BianjingBoard({
     }
   }
 
+  async function changePassword(event: React.SyntheticEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!adminPassword || !onPasswordChanged) return;
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage('兩次輸入的新密碼不一致。');
+      return;
+    }
+    setSavingPassword(true);
+    setPasswordMessage('');
+    try {
+      const result = await fetch('/api/works/admin', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ currentPassword: adminPassword, newPassword }),
+      });
+      const data = (await result.json()) as { message?: string };
+      if (!result.ok) throw new Error(data.message);
+      onPasswordChanged(newPassword);
+      setNewPassword('');
+      setConfirmPassword('');
+      setChangingPassword(false);
+      setMessage('管理密碼已更新；下次請使用新密碼登入。');
+    } catch (error) {
+      setPasswordMessage(
+        error instanceof Error && error.message
+          ? error.message
+          : '密碼尚未更新，請再試一次。',
+      );
+    } finally {
+      setSavingPassword(false);
+    }
+  }
+
   return (
     <section className="city-board" aria-labelledby="city-board-title">
       <header>
@@ -535,9 +677,17 @@ function BianjingBoard({
         </div>
         <div className="board-actions">
           {adminPassword && (
-            <span className="admin-badge">
+            <button
+              className={`admin-badge ${adminToolsOpen ? 'open' : ''}`}
+              aria-expanded={adminToolsOpen}
+              onClick={() => {
+                setAdminToolsOpen((current) => !current);
+                setChangingPassword(false);
+                setPasswordMessage('');
+              }}
+            >
               <ShieldCheck /> 管理模式
-            </span>
+            </button>
           )}
           <Button
             variant="outline"
@@ -553,6 +703,76 @@ function BianjingBoard({
           )}
         </div>
       </header>
+      {adminPassword && adminToolsOpen && (
+        <div className="admin-control-panel">
+          <div>
+            <strong>佈告欄管理工具</strong>
+            <span>你可以逐篇刪除作品，或更新管理密碼。</span>
+          </div>
+          {onPasswordChanged && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                setChangingPassword((current) => !current);
+                setPasswordMessage('');
+              }}
+            >
+              更改管理密碼
+            </Button>
+          )}
+        </div>
+      )}
+      {adminToolsOpen &&
+        changingPassword &&
+        adminPassword &&
+        onPasswordChanged && (
+          <form className="password-change" onSubmit={changePassword}>
+            <div>
+              <strong>設定新的管理密碼</strong>
+              <span>請輸入 8 至 64 個字元；儲存後舊密碼會立即失效。</span>
+            </div>
+            <label htmlFor="new-board-admin-password">新密碼</label>
+            <input
+              id="new-board-admin-password"
+              type="password"
+              value={newPassword}
+              minLength={8}
+              maxLength={64}
+              onChange={(event) => setNewPassword(event.target.value)}
+              autoComplete="new-password"
+              required
+            />
+            <label htmlFor="confirm-board-admin-password">再輸入一次</label>
+            <input
+              id="confirm-board-admin-password"
+              type="password"
+              value={confirmPassword}
+              minLength={8}
+              maxLength={64}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              autoComplete="new-password"
+              required
+            />
+            <div className="password-change-actions">
+              <Button type="submit" disabled={savingPassword}>
+                {savingPassword ? '儲存中…' : '儲存新密碼'}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setChangingPassword(false);
+                  setNewPassword('');
+                  setConfirmPassword('');
+                  setPasswordMessage('');
+                }}
+              >
+                取消
+              </Button>
+            </div>
+            {passwordMessage && <output>{passwordMessage}</output>}
+          </form>
+        )}
       {message && <output className="board-message">{message}</output>}
       {!loading && !message && works.length === 0 && (
         <div className="empty-board">
@@ -591,7 +811,7 @@ function BianjingBoard({
               }).format(work.createdAt)}{' '}
               張貼
             </time>
-            {adminPassword && (
+            {adminPassword && adminToolsOpen && (
               <div className="delete-control">
                 {pendingDelete === work.id ? (
                   <>
@@ -807,6 +1027,7 @@ function CreatePage() {
           <BianjingBoard
             revision={boardRevision}
             adminPassword={adminPassword ?? undefined}
+            onPasswordChanged={setAdminPassword}
             onExitAdmin={() => {
               setAdminPassword(null);
               setBoardVisible(publishedThisSession);

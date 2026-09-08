@@ -12,3 +12,9 @@ export const ciWorks = sqliteTable(
   },
   (table) => [index('ci_works_created_at_idx').on(table.createdAt)],
 );
+
+export const boardAdminSettings = sqliteTable('board_admin_settings', {
+  id: integer('id').primaryKey(),
+  passwordHash: text('password_hash').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
