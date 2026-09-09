@@ -32,7 +32,13 @@ import {
   wheelTargetDegrees,
 } from '@/lib/ci-workshop';
 
-type PageId = 'origin' | 'create';
+type PageId =
+  | 'origin'
+  | 'create'
+  | 'aliases'
+  | 'types'
+  | 'styles'
+  | 'checkpoint';
 type PublishedWork = {
   id: string;
   author: string;
@@ -43,7 +49,11 @@ type PublishedWork = {
 };
 const PAGES: { id: PageId; label: string; title: string }[] = [
   { id: 'origin', label: '01 詞的由來', title: '詞，真的是到了宋朝才誕生嗎？' },
-  { id: 'create', label: '02 填詞工作室', title: '抽一副詞牌，寫自己的題目' },
+  { id: 'create', label: '02 填詞工作室', title: '先看懂詞牌，再創作一闋詞' },
+  { id: 'aliases', label: '03 詞的別稱', title: '把別稱和由來連起來' },
+  { id: 'types', label: '04 詞的類別', title: '用字數判斷小令、中調、長調' },
+  { id: 'styles', label: '05 詞的風格', title: '婉約與豪放，各有什麼氣質？' },
+  { id: 'checkpoint', label: '06 詞學闖關帖', title: '把學到的詞學知識帶走' },
 ];
 
 function randomIndex(length: number) {
@@ -256,17 +266,7 @@ function YuMeiRenScore({ work }: { work: (typeof yuMeiRenWorks)[number] }) {
 function OriginPage({ next }: { next: () => void }) {
   const [litSources, setLitSources] = useState<string[]>([]);
   const [step, setStep] = useState(1);
-  const [workId, setWorkId] = useState(yuMeiRenWorks[0].id);
-  const [scoreReady, setScoreReady] = useState(false);
-  const selectedWork =
-    yuMeiRenWorks.find((work) => work.id === workId) ?? yuMeiRenWorks[0];
   const originsReady = litSources.length === originStreams.length;
-
-  useEffect(() => {
-    if (step < 2 || scoreReady) return;
-    const timer = window.setTimeout(() => setScoreReady(true), 4450);
-    return () => window.clearTimeout(timer);
-  }, [scoreReady, step]);
 
   function advance(nextStep: number) {
     setStep(nextStep);
@@ -287,164 +287,109 @@ function OriginPage({ next }: { next: () => void }) {
           <p className="eyebrow">詞的誕生旅程</p>
           <h1 id="origin-title">詞，真的是到了宋朝才誕生嗎？</h1>
           <div className="origin-answer">
-            <strong>答案藏在四段旅程裡。</strong>
-            <span>跟著音樂、文字與時間，一步一步找出來。</span>
+            <strong>答案藏在三幕旅程裡。</strong>
+            <span>先找時間位置，再追查詞的誕生線索。</span>
           </div>
         </header>
 
-        <section className="origin-act source-act" id="origin-act-1">
+        <section className="origin-act history-act" id="origin-act-1">
           <span className="act-number">第一幕</span>
-          <h2>三股力量，在隋唐相遇</h2>
-          <p>請把三張來源圖卡都點亮。</p>
-          <div className="origin-streams">
-            {originStreams.map((source) => {
-              const active = litSources.includes(source.id);
-              return (
-                <button
-                  className={active ? 'active' : ''}
-                  key={source.id}
-                  aria-pressed={active}
-                  onClick={() =>
-                    setLitSources((current) =>
-                      current.includes(source.id)
-                        ? current
-                        : [...current, source.id],
-                    )
-                  }
-                >
-                  <span>{source.icon}</span>
-                  <strong>{source.title}</strong>
-                  <small>{source.note}</small>
-                </button>
-              );
-            })}
-          </div>
-          <div className={`music-confluence ${originsReady ? 'ready' : ''}`}>
-            <i />
-            <i />
-            <i />
+          <h2>詞的時間定位</h2>
+          <div className="ci-history-line" aria-label="詞的發展時間軸">
             <div>
-              <Music2 />
-              <strong>隋唐新樂</strong>
-              <span>新的旋律，需要新的歌詞</span>
+              <i />
+              <small>唐代</small>
+              <strong>萌芽</strong>
+            </div>
+            <div>
+              <i />
+              <small>晚唐五代</small>
+              <strong>成熟</strong>
+            </div>
+            <div className="flourished">
+              <i />
+              <small>兩宋</small>
+              <strong>盛行</strong>
             </div>
           </div>
-          {originsReady && step === 1 && (
+          {step === 1 && (
             <Button onClick={() => advance(2)}>
-              看文字怎麼跟著旋律走 <ArrowRight />
+              詞是怎麼形成的？ <ArrowRight />
             </Button>
           )}
         </section>
 
         {step >= 2 && (
-          <section className="origin-act score-act" id="origin-act-2">
+          <section className="origin-act source-act" id="origin-act-2">
             <span className="act-number">第二幕</span>
-            <h2>一個音，接住一個字</h2>
-            <p className="score-intro">
-              五線譜顯示音高；綠色曲線把高低連起來。每顆音下方都有一格，歌詞會逐字填入。
-            </p>
-            <div className="score-card">
-              <header>
-                <div>
-                  <span>詞牌</span>
-                  <strong>虞美人</strong>
-                </div>
-                <div>
-                  <span>作者</span>
-                  <strong>{selectedWork.author}</strong>
-                </div>
-                <div>
-                  <span>內容</span>
-                  <strong>{selectedWork.topic}</strong>
-                </div>
-                <small>教學示意旋律｜宋代原曲多已失傳</small>
-              </header>
-              <YuMeiRenScore key={selectedWork.id} work={selectedWork} />
-              <div className="score-legend">
-                <span>
-                  <i className="note-dot" /> 五線譜上的音
-                </span>
-                <span>
-                  <i className="curve-line" /> 看得懂的音高曲線
-                </span>
-                <span>
-                  <i className="word-box" /> 一音一字的歌詞格
-                </span>
+            <h2>三股力量，在隋唐相遇</h2>
+            <p>請把三張來源圖卡都點亮。</p>
+            <div className="origin-streams">
+              {originStreams.map((source) => {
+                const active = litSources.includes(source.id);
+                return (
+                  <button
+                    className={active ? 'active' : ''}
+                    key={source.id}
+                    aria-pressed={active}
+                    onClick={() =>
+                      setLitSources((current) =>
+                        current.includes(source.id)
+                          ? current
+                          : [...current, source.id],
+                      )
+                    }
+                  >
+                    <span>{source.icon}</span>
+                    <strong>{source.title}</strong>
+                    <small>{source.note}</small>
+                  </button>
+                );
+              })}
+            </div>
+            <div className={`music-confluence ${originsReady ? 'ready' : ''}`}>
+              <i />
+              <i />
+              <i />
+              <div>
+                <Music2 />
+                <strong>隋唐新樂</strong>
+                <span>新的旋律，需要新的歌詞</span>
               </div>
             </div>
-            {scoreReady && (
-              <>
-                <div className="work-switchers" aria-label="切換其他虞美人作品">
-                  <span>同一副「虞美人」，也能換上不同內容：</span>
-                  {yuMeiRenWorks.map((work) => (
-                    <button
-                      className={work.id === selectedWork.id ? 'current' : ''}
-                      key={work.id}
-                      onClick={() => setWorkId(work.id)}
-                    >
-                      {work.author}・{work.label}
-                    </button>
-                  ))}
-                </div>
-                {step === 2 && (
-                  <Button onClick={() => advance(3)}>
-                    原來詞牌就是一副模具 <ArrowRight />
-                  </Button>
-                )}
-              </>
-            )}
-          </section>
-        )}
-
-        {step >= 3 && (
-          <section className="origin-act mold-act" id="origin-act-3">
-            <span className="act-number">第三幕</span>
-            <h2>詞牌把旋律變成填詞規則</h2>
-            <div className="mold-rules">
-              <span>
-                <strong>定句數</strong>要分成幾句
-              </span>
-              <span>
-                <strong>定字數</strong>每句放幾字
-              </span>
-              <span>
-                <strong>定聲律</strong>平仄與押韻的位置
-              </span>
-            </div>
-            <p>
-              同一詞牌保留相同的音樂與格式；作者可以填入不同題目和內容。這就是「倚聲填詞」。
-            </p>
-            {step === 3 && (
-              <Button onClick={() => advance(4)}>
-                看詞走過哪些時代 <ArrowRight />
+            {originsReady && step === 2 && (
+              <Button onClick={() => advance(3)}>
+                看看填詞人怎麼做 <ArrowRight />
               </Button>
             )}
           </section>
         )}
 
-        {step >= 4 && (
-          <section className="origin-act history-act" id="origin-act-4">
-            <span className="act-number">第四幕</span>
-            <h2>詞的時間定位</h2>
-            <div className="ci-history-line" aria-label="詞的發展時間軸">
-              <div>
-                <i />
-                <small>唐代</small>
-                <strong>萌芽</strong>
-              </div>
-              <div>
-                <i />
-                <small>晚唐五代</small>
-                <strong>成熟</strong>
-              </div>
-              <div className="flourished">
-                <i />
-                <small>兩宋</small>
-                <strong>盛行</strong>
-              </div>
+        {step >= 3 && (
+          <section className="origin-act comic-act" id="origin-act-3">
+            <span className="act-number">第三幕</span>
+            <h2>有了曲調，填詞人登場了</h2>
+            <p>跟著箭頭讀完四格漫畫，看看歌詞如何裝進旋律。</p>
+            <div
+              className="ci-comic-grid"
+              aria-label="詞人依照旋律填入歌詞的四格漫畫"
+            >
+              {[1, 2, 3, 4].map((panel) => (
+                <figure key={panel}>
+                  <span>{panel}</span>
+                  <Image
+                    src={`/ci-comic-${panel}.png`}
+                    alt={`四格漫畫第 ${panel} 格`}
+                    width={1450}
+                    height={1086}
+                    sizes="(max-width: 720px) 92vw, 42vw"
+                  />
+                  {panel < 4 && <i aria-hidden="true">➜</i>}
+                </figure>
+              ))}
             </div>
             <Button className="origin-next" onClick={next}>
-              我懂了，去抽一副詞牌！ <ArrowRight />
+              我懂了！可是，要怎麼填詞呢？ <ArrowRight />
             </Button>
           </section>
         )}
@@ -587,7 +532,7 @@ function WritingMold({
       });
       const data = (await result.json()) as { message?: string };
       if (!result.ok) throw new Error(data.message);
-      setPublishMessage('張貼成功！全城的詞人都能在佈告欄看見這首作品。');
+      setPublishMessage('張貼成功！全城的詞人都能在佈告欄看見這闋作品。');
       onPublished();
     } catch (error) {
       setPublishMessage(
@@ -648,8 +593,8 @@ function WritingMold({
               <legend>
                 {pattern.stanzas.length > 1
                   ? stanzaIndex === 0
-                    ? '上闋'
-                    : '下闋'
+                    ? '上闋（上片）'
+                    : '下闋（下片）'
                   : '全闋'}
               </legend>
               {stanza.map((length, lineIndex) => {
@@ -961,7 +906,7 @@ function BianjingBoard({
       {!loading && !message && works.length === 0 && (
         <div className="empty-board">
           <Sparkles />
-          <strong>城門剛開，等你張貼第一首詞！</strong>
+          <strong>城門剛開，等你張貼第一闋詞！</strong>
         </div>
       )}
       <div className="work-wall">
@@ -1097,7 +1042,508 @@ function BoardAdminAccess({
   );
 }
 
+const aliasPairs = [
+  { alias: '曲子詞', origin: '依照曲譜填入歌詞。' },
+  { alias: '樂府', origin: '為了配合音樂歌唱而作。' },
+  { alias: '詩餘', origin: '從「詩」演變而來。' },
+  { alias: '長短句', origin: '句子大多長短不齊。' },
+];
+
+function AliasesPage() {
+  const [selected, setSelected] = useState<string | null>(null);
+  const [matches, setMatches] = useState<Record<string, string>>({});
+
+  function pair(origin: string, alias = selected) {
+    if (!alias) return;
+    setMatches((current) => ({ ...current, [origin]: alias }));
+    setSelected(null);
+  }
+
+  const correct = aliasPairs.filter(
+    (item) => matches[item.origin] === item.alias,
+  ).length;
+
+  return (
+    <section className="lesson knowledge-page" aria-labelledby="aliases-title">
+      <header className="lesson-heading compact-heading">
+        <p className="eyebrow">第三分頁 · 拖曳配對</p>
+        <h1 id="aliases-title">詞的別稱，藏著它的身世</h1>
+        <p>把左邊的別稱拖到正確由來；也可以先點別稱，再點右邊說明。</p>
+      </header>
+      <div className="matching-board">
+        <div className="matching-bank" aria-label="詞的別稱">
+          {aliasPairs.map((item) => (
+            <button
+              key={item.alias}
+              draggable
+              className={selected === item.alias ? 'selected' : ''}
+              onDragStart={(event) =>
+                event.dataTransfer.setData('text/plain', item.alias)
+              }
+              onClick={() => setSelected(item.alias)}
+            >
+              {item.alias}
+            </button>
+          ))}
+        </div>
+        <div className="matching-targets">
+          {[...aliasPairs].reverse().map((item) => {
+            const answer = matches[item.origin];
+            const right = answer === item.alias;
+            return (
+              <button
+                key={item.origin}
+                className={answer ? (right ? 'correct' : 'wrong') : ''}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={(event) =>
+                  pair(item.origin, event.dataTransfer.getData('text/plain'))
+                }
+                onClick={() => pair(item.origin)}
+              >
+                <span>{answer ?? '拖到這裡'}</span>
+                <strong>{item.origin}</strong>
+                {answer && <small>{right ? '配對正確' : '再想想看'}</small>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div className="knowledge-feedback" aria-live="polite">
+        <strong>
+          {correct === 4 ? '四組全對！' : `目前答對 ${correct}／4 組`}
+        </strong>
+        <Button variant="outline" onClick={() => setMatches({})}>
+          <RotateCcw /> 重新配對
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+type CiCategory = '小令' | '中調' | '長調';
+const categoryWorks = [
+  {
+    id: 'rumengling',
+    tune: '如夢令',
+    author: '李清照',
+    lines: [
+      '常記溪亭日暮，沉醉不知歸路。',
+      '興盡晚回舟，誤入藕花深處。',
+      '爭渡，爭渡，驚起一灘鷗鷺。',
+    ],
+  },
+  {
+    id: 'yumeiren',
+    tune: '虞美人',
+    author: '李煜',
+    lines: yuMeiRenWorks[0].lines,
+  },
+  {
+    id: 'nanxiangzi',
+    tune: '南鄉子',
+    author: '辛棄疾',
+    lines: [
+      '何處望神州？滿眼風光北固樓。千古興亡多少事？悠悠，不盡長江滾滾流。',
+      '年少萬兜鍪，坐斷東南戰未休。天下英雄誰敵手？曹劉。生子當如孫仲謀。',
+    ],
+  },
+  {
+    id: 'dielianhua',
+    tune: '蝶戀花',
+    author: '柳永',
+    lines: [
+      '佇倚危樓風細細，望極春愁，黯黯生天際。草色煙光殘照裡，無言誰會憑闌意。',
+      '擬把疏狂圖一醉，對酒當歌，強樂還無味。衣帶漸寬終不悔，為伊消得人憔悴。',
+    ],
+  },
+  {
+    id: 'shuidiaogetou',
+    tune: '水調歌頭',
+    author: '蘇軾',
+    lines: [
+      '明月幾時有？把酒問青天。不知天上宮闕，今夕是何年。我欲乘風歸去，又恐瓊樓玉宇，高處不勝寒。起舞弄清影，何似在人間。',
+      '轉朱閣，低綺戶，照無眠。不應有恨，何事長向別時圓？人有悲歡離合，月有陰晴圓缺，此事古難全。但願人長久，千里共嬋娟。',
+    ],
+  },
+  {
+    id: 'niannujiao',
+    tune: '念奴嬌',
+    author: '蘇軾',
+    lines: [
+      '大江東去，浪淘盡，千古風流人物。故壘西邊，人道是，三國周郎赤壁。亂石穿空，驚濤拍岸，捲起千堆雪。江山如畫，一時多少豪傑。',
+      '遙想公瑾當年，小喬初嫁了，雄姿英發。羽扇綸巾，談笑間，檣櫓灰飛煙滅。故國神遊，多情應笑我，早生華髮。人生如夢，一尊還酹江月。',
+    ],
+  },
+];
+
+function categoryFor(count: number): CiCategory {
+  if (count <= 58) return '小令';
+  if (count <= 90) return '中調';
+  return '長調';
+}
+
+function TypesPage() {
+  const [marker, setMarker] = useState(56);
+  const [openWork, setOpenWork] = useState<string | null>('yumeiren');
+  const [answers, setAnswers] = useState<Record<string, CiCategory>>({});
+  const markerCategory = categoryFor(marker);
+
+  return (
+    <section className="lesson knowledge-page" aria-labelledby="types-title">
+      <header className="lesson-heading compact-heading">
+        <p className="eyebrow">第四分頁 · 字數分類尺</p>
+        <h1 id="types-title">一闋詞有幾個字，決定它的類別</h1>
+        <p>拖動尺上的圓點，先找出小令、中調與長調的字數範圍。</p>
+      </header>
+      <div className="category-ruler">
+        <div className="category-bands">
+          <span>
+            小令
+            <br />
+            58 字以內
+          </span>
+          <span>
+            中調
+            <br />
+            59～90 字
+          </span>
+          <span>
+            長調
+            <br />
+            91 字以上
+          </span>
+        </div>
+        <input
+          aria-label="詞的字數"
+          type="range"
+          min="20"
+          max="120"
+          value={marker}
+          onChange={(event) => setMarker(Number(event.target.value))}
+        />
+        <output>
+          <strong>{marker}</strong> 字，是「{markerCategory}」
+        </output>
+      </div>
+      <div className="work-classifier">
+        {categoryWorks.map((work) => {
+          const count = countWritingCharacters(work.lines.join(''));
+          const answer = answers[work.id];
+          const right = answer === categoryFor(count);
+          return (
+            <article
+              key={work.id}
+              className={openWork === work.id ? 'open' : ''}
+            >
+              <button
+                className="work-card-title"
+                onClick={() =>
+                  setOpenWork(openWork === work.id ? null : work.id)
+                }
+              >
+                <span>{work.author}</span>
+                <strong>〈{work.tune}〉</strong>
+                <small>{count} 字・點開讀全文</small>
+              </button>
+              {openWork === work.id && (
+                <div className="work-fulltext">
+                  {work.lines.map((line, index) => (
+                    <p key={index}>{line}</p>
+                  ))}
+                </div>
+              )}
+              <div
+                className="category-choices"
+                aria-label={`判斷${work.tune}的類別`}
+              >
+                {(['小令', '中調', '長調'] as CiCategory[]).map((category) => (
+                  <button
+                    key={category}
+                    className={
+                      answer === category ? (right ? 'correct' : 'wrong') : ''
+                    }
+                    onClick={() =>
+                      setAnswers((current) => ({
+                        ...current,
+                        [work.id]: category,
+                      }))
+                    }
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+              {answer && (
+                <small className={right ? 'answer-right' : 'answer-wrong'}>
+                  {right ? '答對了' : `再看看字數界線`}
+                </small>
+              )}
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+const stylePractice = [
+  {
+    title: '柳永〈雨霖鈴〉',
+    excerpt: '今宵酒醒何處？楊柳岸曉風殘月。',
+    answer: '婉約派',
+  },
+  {
+    title: '李清照〈醉花陰〉',
+    excerpt: '莫道不銷魂，簾捲西風，人比黃花瘦。',
+    answer: '婉約派',
+  },
+  {
+    title: '蘇軾〈江城子〉',
+    excerpt: '會挽雕弓如滿月，西北望，射天狼。',
+    answer: '豪放派',
+  },
+  {
+    title: '辛棄疾〈破陣子〉',
+    excerpt: '了卻君王天下事，贏得生前身後名。',
+    answer: '豪放派',
+  },
+] as const;
+
+function StylesPage() {
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  return (
+    <section className="lesson knowledge-page" aria-labelledby="styles-title">
+      <header className="lesson-heading compact-heading">
+        <p className="eyebrow">第五分頁 · 讀語氣辨風格</p>
+        <h1 id="styles-title">詞壇以婉約為主，也開出了豪放一路</h1>
+        <p>先比較兩派代表作品，再替下面四段詞句找到風格。</p>
+      </header>
+      <div className="style-showcase">
+        <article className="graceful">
+          <span>主要風格</span>
+          <h2>婉約派</h2>
+          <p className="poets">柳永・李清照・秦觀・周邦彥</p>
+          <h3>李清照〈聲聲慢〉</h3>
+          <p>尋尋覓覓，冷冷清清，淒淒慘慘戚戚。乍暖還寒時候，最難將息。</p>
+          <strong>細膩含蓄，善寫離愁與生活情思</strong>
+        </article>
+        <article className="bold">
+          <span>另一重要風格</span>
+          <h2>豪放派</h2>
+          <p className="poets">蘇軾・辛棄疾</p>
+          <h3>蘇軾〈念奴嬌〉</h3>
+          <p>
+            大江東去，浪淘盡，千古風流人物。亂石穿空，驚濤拍岸，捲起千堆雪。
+          </p>
+          <strong>氣象開闊，常寫歷史、志向與家國</strong>
+        </article>
+      </div>
+      <div className="style-practice">
+        {stylePractice.map((item) => {
+          const answer = answers[item.title];
+          return (
+            <article key={item.title}>
+              <h3>{item.title}</h3>
+              <p>{item.excerpt}</p>
+              <div>
+                {['婉約派', '豪放派'].map((style) => (
+                  <button
+                    key={style}
+                    className={
+                      answer === style
+                        ? style === item.answer
+                          ? 'correct'
+                          : 'wrong'
+                        : ''
+                    }
+                    onClick={() =>
+                      setAnswers((current) => ({
+                        ...current,
+                        [item.title]: style,
+                      }))
+                    }
+                  >
+                    {style}
+                  </button>
+                ))}
+              </div>
+              {answer && (
+                <small>
+                  {answer === item.answer
+                    ? '判斷正確！'
+                    : '再讀一次語氣與景象。'}
+                </small>
+              )}
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function CheckpointPage() {
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [fill, setFill] = useState('');
+  const keys = {
+    time: '晚唐五代',
+    type: '小令',
+    style: '豪放派',
+    alias: '長短句',
+  };
+  const score =
+    Object.entries(keys).filter(([key, value]) => answers[key] === value)
+      .length + (fill.trim() === '詞牌' ? 1 : 0);
+  return (
+    <section
+      className="lesson knowledge-page checkpoint-page"
+      aria-labelledby="checkpoint-title"
+    >
+      <header className="lesson-heading compact-heading">
+        <p className="eyebrow">第六分頁 · 階段評量</p>
+        <h1 id="checkpoint-title">詞學通關帖</h1>
+        <p>完成五道不同任務，看看你是否能帶著詞牌走進汴京城。</p>
+      </header>
+      <div className="checkpoint-score">
+        <strong>{score}／5</strong>
+        <span>
+          {score === 5 ? '全部通關！' : '每答一題，通關印章就會亮起。'}
+        </span>
+      </div>
+      <div className="quiz-stack">
+        <QuizChoice
+          number="一"
+          question="詞在哪一個時期逐漸成熟？"
+          options={['唐代初期', '晚唐五代', '兩宋']}
+          answer={answers.time}
+          correct="晚唐五代"
+          choose={(value) =>
+            setAnswers((current) => ({ ...current, time: value }))
+          }
+        />
+        <QuizChoice
+          number="二"
+          question="56 字的〈虞美人〉屬於哪一類？"
+          options={['小令', '中調', '長調']}
+          answer={answers.type}
+          correct="小令"
+          choose={(value) =>
+            setAnswers((current) => ({ ...current, type: value }))
+          }
+        />
+        <article className="quiz-card">
+          <span>三・填空</span>
+          <h2>決定一闋詞句數、字數與聲律的模具叫做：</h2>
+          <input
+            value={fill}
+            onChange={(event) => setFill(event.target.value)}
+            placeholder="請填兩個字"
+          />
+          <small>
+            {fill &&
+              (fill.trim() === '詞牌' ? '答對了！' : '再想想第二分頁的模具。')}
+          </small>
+        </article>
+        <QuizChoice
+          number="四"
+          question="「會挽雕弓如滿月」較接近哪種風格？"
+          options={['婉約派', '豪放派']}
+          answer={answers.style}
+          correct="豪放派"
+          choose={(value) =>
+            setAnswers((current) => ({ ...current, style: value }))
+          }
+        />
+        <article className="quiz-card checkpoint-drag">
+          <span>五・拖曳配對</span>
+          <h2>把正確的詞之別稱拖到由來旁邊。</h2>
+          <div>
+            {['樂府', '詩餘', '長短句'].map((alias) => (
+              <button
+                draggable
+                key={alias}
+                onDragStart={(event) =>
+                  event.dataTransfer.setData('text/plain', alias)
+                }
+                onClick={() => setAnswers((current) => ({ ...current, alias }))}
+              >
+                {alias}
+              </button>
+            ))}
+          </div>
+          <button
+            className={`checkpoint-drop ${answers.alias ? (answers.alias === '長短句' ? 'correct' : 'wrong') : ''}`}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) =>
+              setAnswers((current) => ({
+                ...current,
+                alias: event.dataTransfer.getData('text/plain'),
+              }))
+            }
+          >
+            <strong>{answers.alias ?? '拖到這裡'}</strong>
+            <span>句子大多長短不齊。</span>
+          </button>
+          {answers.alias && (
+            <small>
+              {answers.alias === '長短句' ? '配對正確！' : '再換一張別稱。'}
+            </small>
+          )}
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function QuizChoice({
+  number,
+  question,
+  options,
+  answer,
+  correct,
+  choose,
+}: {
+  number: string;
+  question: string;
+  options: string[];
+  answer?: string;
+  correct: string;
+  choose: (value: string) => void;
+}) {
+  return (
+    <article className="quiz-card">
+      <span>{number}・選擇</span>
+      <h2>{question}</h2>
+      <div>
+        {options.map((option) => (
+          <button
+            key={option}
+            className={
+              answer === option
+                ? option === correct
+                  ? 'correct'
+                  : 'wrong'
+                : ''
+            }
+            onClick={() => choose(option)}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+      {answer && (
+        <small>
+          {answer === correct ? '答對了！' : '再回前面的分頁找線索。'}
+        </small>
+      )}
+    </article>
+  );
+}
+
 function CreatePage() {
+  const [prepStep, setPrepStep] = useState(1);
+  const [workId, setWorkId] = useState(yuMeiRenWorks[0].id);
+  const [scoreReady, setScoreReady] = useState(false);
   const [phase, setPhase] = useState<'idle' | 'spinning' | 'revealed'>('idle');
   const [pattern, setPattern] = useState<CiPattern | null>(null);
   const [topic, setTopic] = useState<string | null>(null);
@@ -1108,11 +1554,28 @@ function CreatePage() {
   const [publishedThisSession, setPublishedThisSession] = useState(false);
   const [adminPassword, setAdminPassword] = useState<string | null>(null);
   const timers = useRef<number[]>([]);
+  const selectedWork =
+    yuMeiRenWorks.find((work) => work.id === workId) ?? yuMeiRenWorks[0];
 
   useEffect(
     () => () => timers.current.forEach((timer) => window.clearTimeout(timer)),
     [],
   );
+
+  useEffect(() => {
+    if (prepStep !== 1 || scoreReady) return;
+    const timer = window.setTimeout(() => setScoreReady(true), 4450);
+    return () => window.clearTimeout(timer);
+  }, [prepStep, scoreReady]);
+
+  function advancePrep(nextStep: number) {
+    setPrepStep(nextStep);
+    window.setTimeout(() => {
+      document
+        .getElementById(`create-prep-${nextStep}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }
 
   function spinCapsule() {
     timers.current.forEach((timer) => window.clearTimeout(timer));
@@ -1142,91 +1605,191 @@ function CreatePage() {
 
   return (
     <section className="lesson create-lesson" aria-labelledby="create-title">
-      <header className="lesson-heading compact-heading">
-        <p className="eyebrow">第二幕 · 今天你是填詞人</p>
-        <h1 id="create-title">你現在是個宋朝的詞人，來創作吧！</h1>
-        <p>首先，先抽個詞牌（音樂旋律）吧！</p>
+      <header className="lesson-heading compact-heading create-prep-heading">
+        <p className="eyebrow">先看懂旋律與詞牌</p>
+        <h1 id="create-title">要怎麼把文字「填」進一闋詞？</h1>
+        <p>先看旋律如何接住文字，再看詞牌如何固定格式。</p>
       </header>
 
-      <div className="poet-roleplay" aria-label="宋朝小詞人正在想像抽到的旋律">
-        <div className="poet-portrait" aria-hidden="true">
-          <Image
-            src="/ci-poet-girl-v2.png"
-            alt=""
-            width={1114}
-            height={1376}
-            sizes="(max-width: 700px) 168px, 222px"
-            priority
-          />
+      <section className="origin-act score-act" id="create-prep-1">
+        <span className="act-number">第一步 · 跟著旋律填字</span>
+        <h2>一個音，接住一個字</h2>
+        <p className="score-intro">
+          五線譜顯示音高；綠色曲線把高低連起來。每顆音下方都有一格，歌詞會逐字填入。
+        </p>
+        <div className="score-card">
+          <header>
+            <div>
+              <span>詞牌</span>
+              <strong>虞美人</strong>
+            </div>
+            <div>
+              <span>作者</span>
+              <strong>{selectedWork.author}</strong>
+            </div>
+            <div>
+              <span>內容</span>
+              <strong>{selectedWork.topic}</strong>
+            </div>
+            <small>教學示意旋律｜宋代原曲多已失傳</small>
+          </header>
+          <YuMeiRenScore key={selectedWork.id} work={selectedWork} />
+          <div className="score-legend">
+            <span>
+              <i className="note-dot" /> 五線譜上的音
+            </span>
+            <span>
+              <i className="curve-line" /> 看得懂的音高曲線
+            </span>
+            <span>
+              <i className="word-box" /> 一音一字的歌詞格
+            </span>
+          </div>
         </div>
-        <div className="speech-bubble">
-          希望可以抽到快樂的旋律。
-          <Music2 />
-        </div>
-      </div>
+        {scoreReady && (
+          <>
+            <div className="work-switchers" aria-label="切換其他虞美人作品">
+              <span>同一副「虞美人」，也能換上不同內容：</span>
+              {yuMeiRenWorks.map((work) => (
+                <button
+                  className={work.id === selectedWork.id ? 'current' : ''}
+                  key={work.id}
+                  onClick={() => setWorkId(work.id)}
+                >
+                  {work.author}・{work.label}
+                </button>
+              ))}
+            </div>
+            {prepStep === 1 && (
+              <Button onClick={() => advancePrep(2)}>
+                再看詞牌怎麼固定格式 <ArrowRight />
+              </Button>
+            )}
+          </>
+        )}
+      </section>
 
-      <CapsuleMachine phase={phase} pattern={pattern} spin={spinCapsule} />
-
-      {pattern && (
-        <div className="capsule-reveal" aria-live="polite">
-          <div className="open-capsule">
-            <span />
-            <span />
+      {prepStep >= 2 && (
+        <section className="origin-act mold-act" id="create-prep-2">
+          <span className="act-number">第二步 · 認識詞牌模具</span>
+          <h2>詞牌把旋律變成填詞規則</h2>
+          <div className="mold-rules">
+            <span>
+              <strong>定句數</strong>要分成幾句
+            </span>
+            <span>
+              <strong>定字數</strong>每句放幾字
+            </span>
+            <span>
+              <strong>定聲律</strong>平仄與押韻的位置
+            </span>
           </div>
-          <div>
-            <span className="step-label">扭蛋打開了</span>
-            <strong>{pattern.name}</strong>
-            <p>{flattenPattern(pattern).join('・')} 字</p>
-          </div>
-          <div className="preview-mold" aria-label={`${pattern.name}模具空格`}>
-            <ShapeGlyph shape={flattenPattern(pattern)} />
-          </div>
-        </div>
+          <p>
+            同一詞牌保留相同的音樂與格式；作者可以填入不同題目和內容。這就是「倚聲填詞」。
+          </p>
+          {prepStep === 2 && (
+            <Button onClick={() => advancePrep(3)}>
+              我會了，來創作一闋詞吧！ <ArrowRight />
+            </Button>
+          )}
+        </section>
       )}
 
-      {pattern && (
-        <TopicWheel
-          topic={topic}
-          spinning={wheelSpinning}
-          turns={wheelTurns}
-          spin={spinTopic}
-        />
-      )}
+      {prepStep >= 3 && (
+        <div className="creation-stage" id="create-prep-3">
+          <header className="lesson-heading compact-heading">
+            <p className="eyebrow">今天你是填詞人</p>
+            <h2>來創作一闋詞吧！</h2>
+            <p>你現在是個宋朝的詞人。首先，先抽個詞牌（音樂旋律）吧！</p>
+          </header>
 
-      {pattern && topic && (
-        <WritingMold
-          key={`${pattern.id}-${topic}`}
-          pattern={pattern}
-          topic={topic}
-          onPublished={() => {
-            setPublishedThisSession(true);
-            setBoardVisible(true);
-            setBoardRevision((value) => value + 1);
-          }}
-        />
-      )}
+          <div
+            className="poet-roleplay"
+            aria-label="宋朝小詞人正在想像抽到的旋律"
+          >
+            <div className="poet-portrait" aria-hidden="true">
+              <Image
+                src="/ci-poet-girl-v2.png"
+                alt=""
+                width={1114}
+                height={1376}
+                sizes="(max-width: 700px) 168px, 222px"
+                priority
+              />
+            </div>
+            <div className="speech-bubble">
+              希望可以抽到快樂的旋律。
+              <Music2 />
+            </div>
+          </div>
 
-      {boardVisible && (
-        <div className="board-arrival">
-          <BianjingBoard
-            revision={boardRevision}
-            adminPassword={adminPassword ?? undefined}
-            onPasswordChanged={setAdminPassword}
-            onExitAdmin={() => {
-              setAdminPassword(null);
-              setBoardVisible(publishedThisSession);
+          <CapsuleMachine phase={phase} pattern={pattern} spin={spinCapsule} />
+
+          {pattern && (
+            <div className="capsule-reveal" aria-live="polite">
+              <div className="open-capsule">
+                <span />
+                <span />
+              </div>
+              <div>
+                <span className="step-label">扭蛋打開了</span>
+                <strong>{pattern.name}</strong>
+                <p>{flattenPattern(pattern).join('・')} 字</p>
+              </div>
+              <div
+                className="preview-mold"
+                aria-label={`${pattern.name}模具空格`}
+              >
+                <ShapeGlyph shape={flattenPattern(pattern)} />
+              </div>
+            </div>
+          )}
+
+          {pattern && (
+            <TopicWheel
+              topic={topic}
+              spinning={wheelSpinning}
+              turns={wheelTurns}
+              spin={spinTopic}
+            />
+          )}
+
+          {pattern && topic && (
+            <WritingMold
+              key={`${pattern.id}-${topic}`}
+              pattern={pattern}
+              topic={topic}
+              onPublished={() => {
+                setPublishedThisSession(true);
+                setBoardVisible(true);
+                setBoardRevision((value) => value + 1);
+              }}
+            />
+          )}
+
+          {boardVisible && (
+            <div className="board-arrival">
+              <BianjingBoard
+                revision={boardRevision}
+                adminPassword={adminPassword ?? undefined}
+                onPasswordChanged={setAdminPassword}
+                onExitAdmin={() => {
+                  setAdminPassword(null);
+                  setBoardVisible(publishedThisSession);
+                }}
+              />
+            </div>
+          )}
+
+          <BoardAdminAccess
+            onAuthenticated={(password) => {
+              setAdminPassword(password);
+              setBoardVisible(true);
+              setBoardRevision((value) => value + 1);
             }}
           />
         </div>
       )}
-
-      <BoardAdminAccess
-        onAuthenticated={(password) => {
-          setAdminPassword(password);
-          setBoardVisible(true);
-          setBoardRevision((value) => value + 1);
-        }}
-      />
     </section>
   );
 }
@@ -1237,7 +1800,9 @@ export default function Home() {
 
   useEffect(() => {
     const route = () => {
-      const match = location.hash.match(/^#ci\/(origin|create)$/);
+      const match = location.hash.match(
+        /^#ci\/(origin|create|aliases|types|styles|checkpoint)$/,
+      );
       setPage(match ? (match[1] as PageId) : null);
     };
     route();
@@ -1251,6 +1816,25 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  function renderLesson() {
+    switch (page) {
+      case 'origin':
+        return <OriginPage next={() => navigate('create')} />;
+      case 'create':
+        return <CreatePage />;
+      case 'aliases':
+        return <AliasesPage />;
+      case 'types':
+        return <TypesPage />;
+      case 'styles':
+        return <StylesPage />;
+      case 'checkpoint':
+        return <CheckpointPage />;
+      default:
+        return null;
+    }
+  }
+
   return (
     <>
       <a href="#main-content" className="skip-link">
@@ -1261,7 +1845,7 @@ export default function Home() {
           <Grid2X2 /> 韻文時空館
         </button>
         <span className="header-note">國中國文 · 互動探索</span>
-        <span className="tag">詞館 · 前兩頁</span>
+        <span className="tag">詞館 · 六個分頁</span>
       </header>
 
       <main id="main-content" className={page ? 'inside-view' : 'home-view'}>
@@ -1285,13 +1869,7 @@ export default function Home() {
                 ))}
               </nav>
             </div>
-            <div className="lesson-main">
-              {page === 'origin' ? (
-                <OriginPage next={() => navigate('create')} />
-              ) : (
-                <CreatePage />
-              )}
-            </div>
+            <div className="lesson-main">{renderLesson()}</div>
           </div>
         ) : (
           <div className="home">

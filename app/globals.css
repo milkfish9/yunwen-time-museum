@@ -2472,3 +2472,399 @@ button[data-slot='button'] {
     stroke-dashoffset: 0 !important;
   }
 }
+
+/* 詞館六頁版：漫畫、知識配對、分類尺、風格與評量 */
+.comic-act {
+  overflow: hidden;
+}
+.ci-comic-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 42px 52px;
+  margin: 24px 0 30px;
+}
+.ci-comic-grid figure {
+  position: relative;
+  margin: 0;
+  border: 5px solid #fff8e9;
+  border-radius: 24px;
+  background: #fff8e9;
+  box-shadow: 0 15px 34px rgb(65 50 32 / 18%);
+}
+.ci-comic-grid figure > span {
+  position: absolute;
+  z-index: 2;
+  top: 12px;
+  left: 12px;
+  display: grid;
+  width: 40px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 3px solid white;
+  border-radius: 50%;
+  background: #2f6f62;
+  color: white;
+  font-size: 1.15rem;
+  font-weight: 900;
+  box-shadow: 0 4px 12px rgb(25 48 39 / 25%);
+}
+.ci-comic-grid img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 18px;
+}
+.ci-comic-grid figure > i {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  right: -47px;
+  color: #b05f31;
+  font-size: 2.5rem;
+  font-style: normal;
+  font-weight: 900;
+  filter: drop-shadow(0 2px 0 white);
+  transform: translateY(-50%);
+}
+.ci-comic-grid figure:nth-child(2) > i {
+  top: auto;
+  right: auto;
+  bottom: -45px;
+  left: -2px;
+  transform: rotate(135deg);
+}
+.create-prep-heading {
+  margin-bottom: 24px;
+}
+.create-lesson > .origin-act {
+  margin-bottom: 28px;
+  background: rgb(255 252 244 / 94%);
+}
+.knowledge-page {
+  padding: clamp(24px, 5vw, 64px);
+  border: 1px solid rgb(92 107 89 / 25%);
+  border-radius: 30px;
+  background:
+    linear-gradient(rgb(249 246 235 / 95%), rgb(239 244 235 / 96%)),
+    url('/tang-dynasty-map.png') center / cover;
+  box-shadow: 0 20px 65px rgb(52 68 54 / 12%);
+}
+.matching-board {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.7fr) minmax(360px, 1.5fr);
+  gap: 28px;
+  align-items: start;
+}
+.matching-bank,
+.matching-targets {
+  display: grid;
+  gap: 14px;
+}
+.matching-bank button,
+.matching-targets button,
+.category-choices button,
+.style-practice button,
+.quiz-card button {
+  border: 1px solid #91866e;
+  border-radius: 14px;
+  background: #fffaf0;
+  color: #504a3e;
+  font-weight: 850;
+  transition: 0.2s ease;
+}
+.matching-bank button {
+  min-height: 70px;
+  padding: 16px;
+  cursor: grab;
+  font-size: 1.3rem;
+  box-shadow: 0 7px 0 #c8bba1;
+}
+.matching-bank button.selected {
+  border-color: #2f7566;
+  background: #dcece5;
+  box-shadow: 0 7px 0 #68a293;
+  transform: translateY(-2px);
+}
+.matching-targets button {
+  display: grid;
+  grid-template-columns: minmax(95px, 0.35fr) 1fr auto;
+  min-height: 76px;
+  padding: 12px 16px;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+}
+.matching-targets button > span {
+  padding: 8px;
+  border-radius: 9px;
+  background: #eee5d3;
+  text-align: center;
+}
+.matching-targets button > strong {
+  font-size: 1.05rem;
+}
+.matching-targets button.correct,
+.category-choices button.correct,
+.style-practice button.correct,
+.quiz-card button.correct {
+  border-color: #2f7566;
+  background: #d8eee4;
+  color: #245b50;
+}
+.matching-targets button.wrong,
+.category-choices button.wrong,
+.style-practice button.wrong,
+.quiz-card button.wrong {
+  border-color: #b86754;
+  background: #f8ded5;
+  color: #8d3c2c;
+}
+.knowledge-feedback {
+  display: flex;
+  margin-top: 24px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #2d6458;
+  font-size: 1.1rem;
+}
+.category-ruler {
+  margin-bottom: 34px;
+  padding: 25px;
+  border-radius: 22px;
+  background: #fffaf0;
+  box-shadow: inset 0 0 0 1px #c7baa0;
+}
+.category-bands {
+  display: grid;
+  grid-template-columns: 38fr 32fr 30fr;
+  margin-bottom: 10px;
+  text-align: center;
+  font-weight: 850;
+}
+.category-bands span {
+  padding: 10px;
+  border-right: 2px solid white;
+}
+.category-bands span:first-child {
+  background: #dcece5;
+}
+.category-bands span:nth-child(2) {
+  background: #eadfbd;
+}
+.category-bands span:last-child {
+  background: #e8cfc3;
+}
+.category-ruler input {
+  width: 100%;
+  accent-color: #2f7566;
+}
+.category-ruler output {
+  display: block;
+  margin-top: 10px;
+  color: #2c6659;
+  text-align: center;
+}
+.category-ruler output strong {
+  font-size: 1.6rem;
+}
+.work-classifier {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.work-classifier > article {
+  overflow: hidden;
+  border: 1px solid #b7aa90;
+  border-radius: 20px;
+  background: rgb(255 252 244 / 94%);
+}
+.work-card-title {
+  display: grid;
+  width: 100%;
+  padding: 18px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+.work-card-title span,
+.work-card-title small {
+  color: #726957;
+}
+.work-card-title strong {
+  margin: 4px 0;
+  font-size: 1.3rem;
+}
+.work-fulltext {
+  padding: 0 18px 10px;
+  color: #4f493d;
+  line-height: 1.9;
+}
+.category-choices {
+  display: flex;
+  padding: 12px 18px 16px;
+  gap: 8px;
+}
+.category-choices button,
+.style-practice button,
+.quiz-card button {
+  padding: 9px 14px;
+}
+.answer-right,
+.answer-wrong {
+  display: block;
+  padding: 0 18px 16px;
+  font-weight: 800;
+}
+.answer-right {
+  color: #28705e;
+}
+.answer-wrong {
+  color: #a04f3a;
+}
+.style-showcase {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+.style-showcase article {
+  padding: 26px;
+  border-radius: 24px;
+  box-shadow: 0 14px 30px rgb(59 51 39 / 13%);
+}
+.style-showcase .graceful {
+  border: 2px solid #96b7aa;
+  background: linear-gradient(145deg, #edf5ef, #fffaf1);
+}
+.style-showcase .bold {
+  border: 2px solid #c48b65;
+  background: linear-gradient(145deg, #f5e8d8, #fff9ed);
+}
+.style-showcase h2 {
+  margin: 5px 0;
+  font-size: 2rem;
+}
+.style-showcase h3 {
+  margin-bottom: 5px;
+}
+.style-showcase .poets {
+  color: #7b604c;
+  font-weight: 800;
+}
+.style-showcase article > strong {
+  color: #2c6759;
+}
+.style-practice {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+.style-practice article,
+.quiz-card {
+  padding: 20px;
+  border: 1px solid #b9ae98;
+  border-radius: 18px;
+  background: rgb(255 252 244 / 95%);
+}
+.style-practice article > div,
+.quiz-card > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+.style-practice small,
+.quiz-card small {
+  display: block;
+  margin-top: 10px;
+  color: #446b61;
+  font-weight: 800;
+}
+.checkpoint-score {
+  display: flex;
+  margin-bottom: 24px;
+  padding: 18px 22px;
+  align-items: center;
+  gap: 18px;
+  border-radius: 18px;
+  background: #2f7566;
+  color: white;
+}
+.checkpoint-score strong {
+  font-size: 2rem;
+}
+.quiz-stack {
+  display: grid;
+  gap: 14px;
+}
+.quiz-card > span {
+  color: #9a5b39;
+  font-weight: 900;
+}
+.quiz-card h2 {
+  margin: 7px 0 14px;
+  font-size: 1.2rem;
+}
+.quiz-card input {
+  width: min(320px, 100%);
+  padding: 11px 13px;
+  border: 1px solid #91866e;
+  border-radius: 12px;
+  background: white;
+  font-size: 1rem;
+}
+.checkpoint-drag > div button {
+  cursor: grab;
+}
+.quiz-card .checkpoint-drop {
+  display: grid;
+  width: 100%;
+  min-height: 74px;
+  margin-top: 14px;
+  grid-template-columns: minmax(100px, 0.35fr) 1fr;
+  align-items: center;
+  gap: 14px;
+  border-style: dashed;
+  text-align: left;
+}
+.checkpoint-drop strong {
+  padding: 8px;
+  border-radius: 9px;
+  background: rgb(255 255 255 / 65%);
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .ci-comic-grid,
+  .matching-board,
+  .work-classifier,
+  .style-showcase,
+  .style-practice {
+    grid-template-columns: 1fr;
+  }
+  .ci-comic-grid {
+    gap: 44px;
+  }
+  .ci-comic-grid figure > i,
+  .ci-comic-grid figure:nth-child(2) > i {
+    top: auto;
+    right: 50%;
+    bottom: -42px;
+    left: auto;
+    transform: translateX(50%) rotate(90deg);
+  }
+  .matching-targets button {
+    grid-template-columns: 1fr;
+  }
+  .knowledge-page {
+    padding: 20px 14px;
+    border-radius: 18px;
+  }
+  .category-bands {
+    font-size: 0.78rem;
+  }
+  .style-showcase h2 {
+    font-size: 1.65rem;
+  }
+}
