@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import {
   ArrowLeft,
@@ -42,7 +42,7 @@ type PublishedWork = {
   createdAt: number;
 };
 const PAGES: { id: PageId; label: string; title: string }[] = [
-  { id: 'origin', label: '01 詞的由來', title: '唐詩怎麼走向宋詞？' },
+  { id: 'origin', label: '01 詞的由來', title: '詞，真的是到了宋朝才誕生嗎？' },
   { id: 'create', label: '02 填詞工作室', title: '抽一副詞牌，寫自己的題目' },
 ];
 
@@ -91,125 +91,362 @@ function TimelineRail() {
   );
 }
 
-const transformationRows = [5, 5, 4, 5, 2, 2, 5];
+const originStreams = [
+  { id: 'yuefu', icon: '歌', title: '古樂府', note: '本來就有配樂歌唱的傳統' },
+  { id: 'poetry', icon: '詩', title: '唐詩', note: '提供文字與句式的養分' },
+  { id: 'foreign', icon: '樂', title: '胡樂', note: '帶來新的曲調與節拍' },
+];
 
-function TransformationTheatre() {
-  const cells = Array.from({ length: 28 }, (_, index) => {
-    const startRow = Math.floor(index / 7);
-    const startColumn = index % 7;
-    let cursor = 0;
-    let endRow = 0;
-    let endColumn = 0;
-    for (let row = 0; row < transformationRows.length; row += 1) {
-      if (index < cursor + transformationRows[row]) {
-        endRow = row;
-        endColumn = index - cursor;
-        break;
-      }
-      cursor += transformationRows[row];
-    }
-    const endWidth = transformationRows[endRow] * 18 - 5;
-    return {
-      index,
-      style: {
-        '--from-x': `${startColumn * 18 - 54}px`,
-        '--from-y': `${startRow * 18 - 27}px`,
-        '--to-x': `${endColumn * 18 - endWidth / 2}px`,
-        '--to-y': `${endRow * 15 - 45}px`,
-        '--delay': `${index * 24}ms`,
-      } as CSSProperties,
-    };
-  });
+const yuMeiRenWorks = [
+  {
+    id: 'li-yu',
+    author: '李煜',
+    label: '春花秋月何時了',
+    topic: '亡國之痛',
+    lines: [
+      '春花秋月何時了',
+      '往事知多少',
+      '小樓昨夜又東風',
+      '故國不堪回首月明中',
+      '雕闌玉砌應猶在',
+      '只是朱顏改',
+      '問君能有幾多愁',
+      '恰似一江春水向東流',
+    ],
+  },
+  {
+    id: 'jiang-jie',
+    author: '蔣捷',
+    label: '少年聽雨歌樓上',
+    topic: '一生聽雨',
+    lines: [
+      '少年聽雨歌樓上',
+      '紅燭昏羅帳',
+      '壯年聽雨客舟中',
+      '江闊雲低斷雁叫西風',
+      '而今聽雨僧廬下',
+      '鬢已星星也',
+      '悲歡離合總無情',
+      '一任階前點滴到天明',
+    ],
+  },
+  {
+    id: 'qin-guan',
+    author: '秦觀',
+    label: '碧桃天上栽和露',
+    topic: '碧桃惜春',
+    lines: [
+      '碧桃天上栽和露',
+      '不是凡花數',
+      '亂山深處水瀠洄',
+      '可惜一枝如畫向誰開',
+      '輕寒細雨情何限',
+      '不道春難管',
+      '為君沉醉又何妨',
+      '只怕酒醒時候斷人腸',
+    ],
+  },
+];
 
+const staffSystems = [
+  { start: 0, end: 12, split: 7 },
+  { start: 12, end: 28, split: 7 },
+  { start: 28, end: 40, split: 7 },
+  { start: 40, end: 56, split: 7 },
+];
+
+const melodyPitches = [
+  4, 5, 6, 7, 6, 5, 4, 3, 4, 5, 4, 3, 4, 5, 6, 7, 8, 7, 6, 5, 6, 7, 6, 5, 4, 3,
+  4, 5, 5, 6, 7, 8, 7, 6, 5, 4, 5, 6, 5, 4, 5, 6, 7, 8, 7, 6, 5, 4, 5, 6, 7, 6,
+  5, 4, 3, 4,
+];
+
+function curvedPitchPath(points: { x: number; y: number }[]) {
+  return points.slice(1).reduce((path, point, index) => {
+    const previous = points[index];
+    const middle = (previous.x + point.x) / 2;
+    return `${path} C ${middle} ${previous.y}, ${middle} ${point.y}, ${point.x} ${point.y}`;
+  }, `M ${points[0].x} ${points[0].y}`);
+}
+
+function YuMeiRenScore({ work }: { work: (typeof yuMeiRenWorks)[number] }) {
+  const characters = work.lines.join('').split('');
   return (
-    <div
-      className="transformation-theatre"
-      aria-label="七言四句逐格變化為詞的長短句"
-    >
-      <span className="theatre-label start-label">整齊的七言四句</span>
-      <div className="moving-grid" aria-hidden="true">
-        {cells.map((cell) => (
-          <i key={cell.index} style={cell.style} />
-        ))}
-      </div>
-      <span className="theatre-label end-label">依旋律挪成長短句</span>
-      <div className="dancing-notes" aria-hidden="true">
-        {['♪', '♫', '♬', '♪', '♩', '♫', '♬', '♪'].map((note, index) => (
-          <b key={`${note}-${index}`}>{note}</b>
-        ))}
-      </div>
+    <div className="score-scroll">
+      <svg
+        className="lyric-score"
+        viewBox="0 0 1000 590"
+        aria-label={`教學示意旋律，下方逐字填入${work.author}的虞美人`}
+      >
+        {staffSystems.map((system, systemIndex) => {
+          const count = system.end - system.start;
+          const baseY = 62 + systemIndex * 142;
+          const step = 850 / (count - 1);
+          const points = Array.from({ length: count }, (_, localIndex) => {
+            const index = system.start + localIndex;
+            return {
+              index,
+              x: 92 + localIndex * step,
+              y: baseY + 40 - melodyPitches[index] * 5,
+            };
+          });
+          return (
+            <g key={system.start}>
+              {Array.from({ length: 5 }, (_, line) => (
+                <line
+                  className="staff-line"
+                  key={line}
+                  x1="48"
+                  y1={baseY + line * 10}
+                  x2="970"
+                  y2={baseY + line * 10}
+                />
+              ))}
+              <text className="treble-clef" x="49" y={baseY + 36}>
+                𝄞
+              </text>
+              <path className="pitch-guide" d={curvedPitchPath(points)} />
+              <line
+                className="measure-line"
+                x1={92 + (system.split - 0.5) * step}
+                x2={92 + (system.split - 0.5) * step}
+                y1={baseY}
+                y2={baseY + 40}
+              />
+              {points.map((point) => (
+                <g key={point.index}>
+                  <g
+                    className="score-note"
+                    style={{ animationDelay: `${point.index * 45}ms` }}
+                  >
+                    <ellipse cx={point.x} cy={point.y} rx="8" ry="6" />
+                    <line
+                      x1={point.x + 7}
+                      x2={point.x + 7}
+                      y1={point.y}
+                      y2={point.y - 27}
+                    />
+                  </g>
+                  <rect
+                    className="lyric-cell"
+                    x={point.x - 16}
+                    y={baseY + 57}
+                    width="32"
+                    height="34"
+                    rx="4"
+                  />
+                  <text
+                    className="lyric-character"
+                    x={point.x}
+                    y={baseY + 81}
+                    style={{ animationDelay: `${1100 + point.index * 55}ms` }}
+                  >
+                    {characters[point.index]}
+                  </text>
+                </g>
+              ))}
+            </g>
+          );
+        })}
+      </svg>
     </div>
   );
 }
 
 function OriginPage({ next }: { next: () => void }) {
-  const [revealed, setRevealed] = useState(false);
+  const [litSources, setLitSources] = useState<string[]>([]);
+  const [step, setStep] = useState(1);
+  const [workId, setWorkId] = useState(yuMeiRenWorks[0].id);
+  const [scoreReady, setScoreReady] = useState(false);
+  const selectedWork =
+    yuMeiRenWorks.find((work) => work.id === workId) ?? yuMeiRenWorks[0];
+  const originsReady = litSources.length === originStreams.length;
+
+  useEffect(() => {
+    if (step < 2 || scoreReady) return;
+    const timer = window.setTimeout(() => setScoreReady(true), 4450);
+    return () => window.clearTimeout(timer);
+  }, [scoreReady, step]);
+
+  function advance(nextStep: number) {
+    setStep(nextStep);
+    window.setTimeout(() => {
+      document
+        .getElementById(`origin-act-${nextStep}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }
+
   return (
-    <section className="lesson origin-lesson" aria-labelledby="origin-title">
-      <header className="lesson-heading">
-        <p className="eyebrow">第一幕 · 點擊展開</p>
-        <h1 id="origin-title">唐詩怎麼走向宋詞？</h1>
-      </header>
-
-      <div className={`origin-stage ${revealed ? 'revealed' : ''}`}>
-        <button
-          className="dynasty-card tang-card"
-          aria-expanded={revealed}
-          onClick={() => setRevealed(true)}
-        >
-          <span className="dynasty">唐朝</span>
-          <strong>近體詩</strong>
-          <ShapeGlyph shape={[7, 7, 7, 7]} />
-          <span className="tang-music-row">
-            <span className="music-sample" aria-label="有些近體詩可以入樂">
-              <Music2 className="sounding" />
-              <Music2 className="sounding" />
-              <Music2 className="silent" />
-              <Music2 className="silent" />
-            </span>
-            <small>部分作品可入樂</small>
-          </span>
-          {!revealed && <em>點我，進展成【詞】吧！</em>}
-        </button>
-
-        <div className="birth-arrow" aria-hidden={!revealed}>
-          <div className="straight-arrow" />
-          <div className="flow-label">
-            <TransformationTheatre />
+    <section
+      className="lesson origin-lesson origin-lesson-v2"
+      aria-labelledby="origin-title"
+    >
+      <div className="origin-map-canvas">
+        <header className="lesson-heading origin-heading">
+          <p className="eyebrow">詞的誕生旅程</p>
+          <h1 id="origin-title">詞，真的是到了宋朝才誕生嗎？</h1>
+          <div className="origin-answer">
+            <strong>答案藏在四段旅程裡。</strong>
+            <span>跟著音樂、文字與時間，一步一步找出來。</span>
           </div>
-        </div>
+        </header>
 
-        <div className="dynasty-card song-card" aria-hidden={!revealed}>
-          <span className="dynasty">宋朝</span>
-          <strong>詞</strong>
-          <ShapeGlyph shape={[6, 6, 5, 6, 2, 2, 6]} />
-          <span
-            className="music-sample all-solid"
-            aria-label="所有的詞都可入樂"
-          >
-            <Music2 />
-            <Music2 />
-            <Music2 />
-            <Music2 />
-          </span>
-          <small className="song-explain">
-            所有的詞都可入樂，每一首詞＝一首歌曲
-          </small>
-        </div>
-      </div>
-
-      <div className={`discovery ${revealed ? 'show' : ''}`} aria-live="polite">
-        {revealed && (
-          <>
-            <Check />
-            <p>
-              <strong>詞不是把唐詩任意切短。</strong>
-              外來音樂帶來新的曲調，文字為了配合旋律，從整齊句式變成依詞牌安排的長短句。
-            </p>
-            <Button onClick={next}>
-              去抽我的詞牌 <ArrowRight />
+        <section className="origin-act source-act" id="origin-act-1">
+          <span className="act-number">第一幕</span>
+          <h2>三股力量，在隋唐相遇</h2>
+          <p>請把三張來源圖卡都點亮。</p>
+          <div className="origin-streams">
+            {originStreams.map((source) => {
+              const active = litSources.includes(source.id);
+              return (
+                <button
+                  className={active ? 'active' : ''}
+                  key={source.id}
+                  aria-pressed={active}
+                  onClick={() =>
+                    setLitSources((current) =>
+                      current.includes(source.id)
+                        ? current
+                        : [...current, source.id],
+                    )
+                  }
+                >
+                  <span>{source.icon}</span>
+                  <strong>{source.title}</strong>
+                  <small>{source.note}</small>
+                </button>
+              );
+            })}
+          </div>
+          <div className={`music-confluence ${originsReady ? 'ready' : ''}`}>
+            <i />
+            <i />
+            <i />
+            <div>
+              <Music2 />
+              <strong>隋唐新樂</strong>
+              <span>新的旋律，需要新的歌詞</span>
+            </div>
+          </div>
+          {originsReady && step === 1 && (
+            <Button onClick={() => advance(2)}>
+              看文字怎麼跟著旋律走 <ArrowRight />
             </Button>
-          </>
+          )}
+        </section>
+
+        {step >= 2 && (
+          <section className="origin-act score-act" id="origin-act-2">
+            <span className="act-number">第二幕</span>
+            <h2>一個音，接住一個字</h2>
+            <p className="score-intro">
+              五線譜顯示音高；綠色曲線把高低連起來。每顆音下方都有一格，歌詞會逐字填入。
+            </p>
+            <div className="score-card">
+              <header>
+                <div>
+                  <span>詞牌</span>
+                  <strong>虞美人</strong>
+                </div>
+                <div>
+                  <span>作者</span>
+                  <strong>{selectedWork.author}</strong>
+                </div>
+                <div>
+                  <span>內容</span>
+                  <strong>{selectedWork.topic}</strong>
+                </div>
+                <small>教學示意旋律｜宋代原曲多已失傳</small>
+              </header>
+              <YuMeiRenScore key={selectedWork.id} work={selectedWork} />
+              <div className="score-legend">
+                <span>
+                  <i className="note-dot" /> 五線譜上的音
+                </span>
+                <span>
+                  <i className="curve-line" /> 看得懂的音高曲線
+                </span>
+                <span>
+                  <i className="word-box" /> 一音一字的歌詞格
+                </span>
+              </div>
+            </div>
+            {scoreReady && (
+              <>
+                <div className="work-switchers" aria-label="切換其他虞美人作品">
+                  <span>同一副「虞美人」，也能換上不同內容：</span>
+                  {yuMeiRenWorks.map((work) => (
+                    <button
+                      className={work.id === selectedWork.id ? 'current' : ''}
+                      key={work.id}
+                      onClick={() => setWorkId(work.id)}
+                    >
+                      {work.author}・{work.label}
+                    </button>
+                  ))}
+                </div>
+                {step === 2 && (
+                  <Button onClick={() => advance(3)}>
+                    原來詞牌就是一副模具 <ArrowRight />
+                  </Button>
+                )}
+              </>
+            )}
+          </section>
+        )}
+
+        {step >= 3 && (
+          <section className="origin-act mold-act" id="origin-act-3">
+            <span className="act-number">第三幕</span>
+            <h2>詞牌把旋律變成填詞規則</h2>
+            <div className="mold-rules">
+              <span>
+                <strong>定句數</strong>要分成幾句
+              </span>
+              <span>
+                <strong>定字數</strong>每句放幾字
+              </span>
+              <span>
+                <strong>定聲律</strong>平仄與押韻的位置
+              </span>
+            </div>
+            <p>
+              同一詞牌保留相同的音樂與格式；作者可以填入不同題目和內容。這就是「倚聲填詞」。
+            </p>
+            {step === 3 && (
+              <Button onClick={() => advance(4)}>
+                看詞走過哪些時代 <ArrowRight />
+              </Button>
+            )}
+          </section>
+        )}
+
+        {step >= 4 && (
+          <section className="origin-act history-act" id="origin-act-4">
+            <span className="act-number">第四幕</span>
+            <h2>詞的時間定位</h2>
+            <div className="ci-history-line" aria-label="詞的發展時間軸">
+              <div>
+                <i />
+                <small>唐代</small>
+                <strong>萌芽</strong>
+              </div>
+              <div>
+                <i />
+                <small>晚唐五代</small>
+                <strong>成熟</strong>
+              </div>
+              <div className="flourished">
+                <i />
+                <small>兩宋</small>
+                <strong>盛行</strong>
+              </div>
+            </div>
+            <Button className="origin-next" onClick={next}>
+              我懂了，去抽一副詞牌！ <ArrowRight />
+            </Button>
+          </section>
         )}
       </div>
     </section>

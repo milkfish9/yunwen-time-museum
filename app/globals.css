@@ -778,6 +778,475 @@ button[data-slot='button'] {
   margin: 0;
 }
 
+/* Page 1 v2: an interactive journey from musical sources to ci. */
+.origin-lesson-v2 {
+  max-width: 1180px;
+}
+.origin-map-canvas {
+  position: relative;
+  isolation: isolate;
+  padding: clamp(24px, 4vw, 48px);
+  overflow: hidden;
+  border: 1px solid #b9aa8d;
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, #eee8d8e8, #dfe8dfef),
+    url('/tang-dynasty-map.png') center 90px / min(1060px, 96%) auto no-repeat,
+    url('/tang-dynasty-map.png') center / cover no-repeat;
+  background-blend-mode: normal, multiply, luminosity;
+  box-shadow: 0 24px 60px #243b3420;
+}
+.origin-map-canvas::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 7%, #fffdf4dd, transparent 34%),
+    linear-gradient(90deg, #5d4b3420 1px, transparent 1px),
+    linear-gradient(#5d4b3420 1px, transparent 1px);
+  background-size:
+    auto,
+    36px 36px,
+    36px 36px;
+  opacity: 0.52;
+}
+.origin-heading {
+  max-width: 900px;
+  margin-bottom: 30px;
+}
+.origin-heading h1 {
+  color: #263d36;
+}
+.origin-answer {
+  width: fit-content;
+  padding: 12px 16px;
+  display: grid;
+  gap: 2px;
+  border-left: 5px solid #b96d3d;
+  border-radius: 0 12px 12px 0;
+  background: #fffaf0d9;
+  color: #6f4024;
+}
+.origin-answer span {
+  color: #665b4c;
+  font-size: 14px;
+}
+.origin-act {
+  margin-top: 28px;
+  padding: clamp(20px, 3vw, 32px);
+  scroll-margin-top: 18px;
+  border: 1px solid #b7aa91;
+  border-radius: 22px;
+  background: #fffaf0e8;
+  box-shadow: 0 14px 35px #4a3b2820;
+  animation: origin-act-in 0.55s ease-out both;
+}
+.origin-act > h2 {
+  margin: 4px 0 6px;
+  color: #29483f;
+  font-size: clamp(25px, 3vw, 36px);
+}
+.origin-act > p {
+  color: #615746;
+}
+.act-number {
+  color: #a0522d;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+.origin-streams {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.origin-streams button {
+  min-height: 170px;
+  padding: 18px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 5px;
+  border: 2px solid #b8aa90;
+  border-radius: 18px;
+  background: #f8f3e8;
+  color: #40554d;
+  text-align: center;
+  transition: 0.25s ease;
+}
+.origin-streams button > span {
+  width: 55px;
+  height: 55px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #d9e0d4;
+  font-family: serif;
+  font-size: 27px;
+  font-weight: 900;
+}
+.origin-streams button strong {
+  font-size: 24px;
+}
+.origin-streams button small {
+  color: #706858;
+}
+.origin-streams button.active {
+  border-color: #276b5e;
+  background: #244f46;
+  color: white;
+  box-shadow:
+    0 0 0 5px #d8e8d7,
+    0 13px 28px #315d4538;
+  transform: translateY(-4px);
+}
+.origin-streams button.active > span {
+  background: #dff58b;
+  color: #29483f;
+}
+.origin-streams button.active small {
+  color: #d9e7df;
+}
+.music-confluence {
+  position: relative;
+  min-height: 150px;
+  margin: 12px auto 5px;
+  display: grid;
+  place-items: center;
+}
+.music-confluence > i {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 58px;
+  background: #a68b6840;
+  transform-origin: bottom;
+}
+.music-confluence > i:nth-child(1) {
+  left: 17%;
+  transform: rotate(-54deg);
+}
+.music-confluence > i:nth-child(2) {
+  left: 50%;
+}
+.music-confluence > i:nth-child(3) {
+  right: 17%;
+  transform: rotate(54deg);
+}
+.music-confluence > div {
+  margin-top: 48px;
+  padding: 13px 22px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0 9px;
+  border: 2px solid #a98b66;
+  border-radius: 16px;
+  background: #ece3d1;
+  color: #6a5e4d;
+}
+.music-confluence svg {
+  grid-row: 1 / 3;
+}
+.music-confluence span {
+  font-size: 13px;
+}
+.music-confluence.ready > i {
+  background: #27786b;
+  box-shadow: 0 0 9px #89cda7;
+}
+.music-confluence.ready > div {
+  border-color: #287466;
+  background: #dff1df;
+  color: #244f46;
+  animation: confluence-glow 1.2s ease-in-out infinite alternate;
+}
+.source-act > button[data-slot='button'],
+.score-act > button[data-slot='button'],
+.mold-act > button[data-slot='button'] {
+  margin: 5px auto 0;
+  display: flex;
+}
+.score-intro {
+  max-width: 800px;
+}
+.score-card {
+  overflow: hidden;
+  border: 2px solid #7f765f;
+  border-radius: 18px;
+  background: #fffdf6;
+  box-shadow: 0 10px 0 #c9b896;
+}
+.score-card > header {
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: repeat(3, auto) 1fr;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 1px solid #bcae91;
+  background: #ede3ce;
+}
+.score-card > header > div {
+  display: grid;
+  gap: 1px;
+}
+.score-card > header span,
+.score-card > header small {
+  color: #736954;
+  font-size: 12px;
+}
+.score-card > header strong {
+  color: #3a4d46;
+  font-size: 18px;
+}
+.score-card > header small {
+  justify-self: end;
+  text-align: right;
+}
+.score-scroll {
+  overflow-x: auto;
+  padding: 14px;
+  scrollbar-color: #7c9a8b #eee7d8;
+}
+.lyric-score {
+  display: block;
+  width: 100%;
+  min-width: 860px;
+  background: #fffdf7;
+}
+.staff-line,
+.measure-line {
+  stroke: #443f37;
+  stroke-width: 1.8;
+}
+.measure-line {
+  stroke-width: 3;
+}
+.treble-clef {
+  fill: #35312b;
+  font-family: serif;
+  font-size: 48px;
+}
+.pitch-guide {
+  fill: none;
+  stroke: #15947f;
+  stroke-width: 6;
+  stroke-linecap: round;
+  opacity: 0.56;
+  stroke-dasharray: 1300;
+  stroke-dashoffset: 1300;
+  animation: pitch-line-draw 1.25s 0.3s ease-out forwards;
+}
+.score-note {
+  fill: #302d29;
+  stroke: #302d29;
+  stroke-width: 3;
+  opacity: 0;
+  animation: score-note-in 0.22s ease-out forwards;
+}
+.lyric-cell {
+  fill: #f5eddd;
+  stroke: #9c8a6f;
+  stroke-width: 1.5;
+}
+.lyric-character {
+  fill: #294b42;
+  font-size: 22px;
+  font-weight: 900;
+  text-anchor: middle;
+  opacity: 0;
+  animation: lyric-letter-in 0.24s ease-out forwards;
+}
+.score-legend {
+  padding: 10px 16px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  color: #665d4c;
+  font-size: 13px;
+}
+.score-legend span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.score-legend i {
+  display: inline-block;
+}
+.note-dot {
+  width: 15px;
+  height: 11px;
+  border-radius: 50%;
+  background: #302d29;
+  transform: rotate(-15deg);
+}
+.curve-line {
+  width: 25px;
+  height: 9px;
+  border-top: 4px solid #15947f;
+  border-radius: 50%;
+}
+.word-box {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #9c8a6f;
+  background: #f5eddd;
+}
+.work-switchers {
+  margin-top: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  opacity: 0;
+  animation: switchers-in 0.45s ease-out forwards;
+}
+.work-switchers > span {
+  width: 100%;
+  color: #615746;
+  font-weight: 800;
+}
+.work-switchers button {
+  padding: 9px 13px;
+  border: 1px solid #8f8168;
+  border-radius: 99px;
+  background: #fffaf0;
+  color: #5c513f;
+}
+.work-switchers button.current {
+  border-color: #276b5e;
+  background: #276b5e;
+  color: white;
+}
+.mold-rules {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.mold-rules span {
+  padding: 18px;
+  display: grid;
+  gap: 4px;
+  border: 1px solid #b9ab91;
+  border-radius: 14px;
+  background: #f2ead9;
+  color: #6f6452;
+  text-align: center;
+}
+.mold-rules strong {
+  color: #284f44;
+  font-size: 22px;
+}
+.mold-act > p {
+  max-width: 760px;
+  margin: 20px auto;
+  text-align: center;
+}
+.ci-history-line {
+  position: relative;
+  max-width: 760px;
+  margin: 35px auto 42px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+.ci-history-line::before {
+  content: '';
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 17px;
+  height: 5px;
+  border-radius: 9px;
+  background: linear-gradient(90deg, #9b8c72, #6c8c79, #2d6c5e);
+}
+.ci-history-line > div {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  color: #5f5544;
+}
+.ci-history-line i {
+  z-index: 1;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 7px;
+  border: 7px solid #fffaf0;
+  border-radius: 50%;
+  background: #789184;
+  box-shadow: 0 0 0 2px #789184;
+}
+.ci-history-line small {
+  font-weight: 800;
+}
+.ci-history-line strong {
+  font-size: 22px;
+}
+.ci-history-line .flourished {
+  color: #244f46;
+  transform: scale(1.15);
+}
+.ci-history-line .flourished i {
+  background: #d7f574;
+  box-shadow:
+    0 0 0 3px #2d6c5e,
+    0 0 24px #bade63;
+}
+.origin-next {
+  margin: auto;
+  display: flex;
+  font-size: 19px !important;
+}
+
+@keyframes origin-act-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes confluence-glow {
+  to {
+    box-shadow:
+      0 0 0 7px #cce5c8,
+      0 0 28px #91c69c;
+  }
+}
+@keyframes pitch-line-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes score-note-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes lyric-letter-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes switchers-in {
+  to {
+    opacity: 1;
+  }
+}
+
 /* Page 2: gacha, wheel, and writing mold. */
 .poet-roleplay {
   position: relative;
@@ -1820,6 +2289,47 @@ button[data-slot='button'] {
     grid-template-rows: 185px 310px 185px;
     gap: 12px;
   }
+  .origin-map-canvas {
+    margin: 0 -1%;
+    padding: 22px 14px;
+    border-radius: 18px;
+    background:
+      linear-gradient(180deg, #eee8d8e5, #dfe8dff0),
+      url('/tang-dynasty-map.png') center 110px / auto 520px no-repeat,
+      url('/tang-dynasty-map.png') center / cover no-repeat;
+  }
+  .origin-heading h1 {
+    font-size: 36px;
+  }
+  .origin-act {
+    padding: 19px 14px;
+  }
+  .origin-streams,
+  .mold-rules {
+    grid-template-columns: 1fr;
+  }
+  .origin-streams button {
+    min-height: 125px;
+  }
+  .score-card > header {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .score-card > header small {
+    grid-column: 1 / -1;
+    justify-self: start;
+    text-align: left;
+  }
+  .work-switchers button {
+    width: 100%;
+    text-align: left;
+  }
+  .ci-history-line strong {
+    font-size: 18px;
+  }
+  .ci-history-line .flourished {
+    transform: scale(1.07);
+  }
   .tang-card {
     grid-column: 1 / -1;
   }
@@ -1952,5 +2462,13 @@ button[data-slot='button'] {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  .score-note,
+  .lyric-character,
+  .work-switchers {
+    opacity: 1 !important;
+  }
+  .pitch-guide {
+    stroke-dashoffset: 0 !important;
   }
 }
