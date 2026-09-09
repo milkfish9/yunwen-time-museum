@@ -1053,6 +1053,12 @@ const aliasPairs = [
 function AliasesPage({ next }: { next: () => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [matches, setMatches] = useState<Record<string, string>>({});
+  const [dragging, setDragging] = useState<{
+    alias: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  const dragMoved = useRef(false);
 
   function pair(origin: string, alias = selected) {
     if (!alias) return;
@@ -1076,12 +1082,46 @@ function AliasesPage({ next }: { next: () => void }) {
           {aliasPairs.map((item) => (
             <button
               key={item.alias}
-              draggable
+              type="button"
               className={selected === item.alias ? 'selected' : ''}
-              onDragStart={(event) =>
-                event.dataTransfer.setData('text/plain', item.alias)
-              }
-              onClick={() => setSelected(item.alias)}
+              onPointerDown={(event) => {
+                event.currentTarget.setPointerCapture(event.pointerId);
+                dragMoved.current = false;
+                setSelected(item.alias);
+                setDragging({
+                  alias: item.alias,
+                  x: event.clientX,
+                  y: event.clientY,
+                });
+              }}
+              onPointerMove={(event) => {
+                if (!event.currentTarget.hasPointerCapture(event.pointerId))
+                  return;
+                dragMoved.current = true;
+                setDragging({
+                  alias: item.alias,
+                  x: event.clientX,
+                  y: event.clientY,
+                });
+              }}
+              onPointerUp={(event) => {
+                if (dragMoved.current) {
+                  const target = document
+                    .elementFromPoint(event.clientX, event.clientY)
+                    ?.closest<HTMLElement>('[data-alias-origin]');
+                  const origin = target?.dataset.aliasOrigin;
+                  if (origin) pair(origin, item.alias);
+                }
+                setDragging(null);
+              }}
+              onPointerCancel={() => setDragging(null)}
+              onClick={() => {
+                if (dragMoved.current) {
+                  dragMoved.current = false;
+                  return;
+                }
+                setSelected(item.alias);
+              }}
             >
               {item.alias}
             </button>
@@ -1094,11 +1134,9 @@ function AliasesPage({ next }: { next: () => void }) {
             return (
               <button
                 key={item.origin}
+                type="button"
+                data-alias-origin={item.origin}
                 className={answer ? (right ? 'correct' : 'wrong') : ''}
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={(event) =>
-                  pair(item.origin, event.dataTransfer.getData('text/plain'))
-                }
                 onClick={() => pair(item.origin)}
               >
                 <span>{answer ?? '拖到這裡'}</span>
@@ -1109,6 +1147,15 @@ function AliasesPage({ next }: { next: () => void }) {
           })}
         </div>
       </div>
+      {dragging && (
+        <div
+          className="alias-drag-ghost"
+          style={{ left: dragging.x, top: dragging.y }}
+          aria-hidden="true"
+        >
+          {dragging.alias}
+        </div>
+      )}
       <div className="knowledge-feedback" aria-live="polite">
         <strong>
           {correct === 4 ? '四組全對！' : `目前答對 ${correct}／4 組`}

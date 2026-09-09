@@ -2551,14 +2551,14 @@ button[data-slot='button'] {
 }
 .matching-board {
   display: grid;
-  grid-template-columns: minmax(180px, 0.7fr) minmax(360px, 1.5fr);
-  gap: 28px;
+  grid-template-columns: minmax(132px, 0.55fr) minmax(320px, 1.45fr);
+  gap: 16px;
   align-items: start;
 }
 .matching-bank,
 .matching-targets {
   display: grid;
-  gap: 14px;
+  gap: 9px;
 }
 .matching-bank button,
 .matching-targets button,
@@ -2573,11 +2573,14 @@ button[data-slot='button'] {
   transition: 0.2s ease;
 }
 .matching-bank button {
-  min-height: 70px;
-  padding: 16px;
+  min-height: 54px;
+  padding: 10px 12px;
   cursor: grab;
-  font-size: 1.3rem;
-  box-shadow: 0 7px 0 #c8bba1;
+  font-size: 1.12rem;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  box-shadow: 0 5px 0 #c8bba1;
 }
 .matching-bank button.selected {
   border-color: #2f7566;
@@ -2587,11 +2590,11 @@ button[data-slot='button'] {
 }
 .matching-targets button {
   display: grid;
-  grid-template-columns: minmax(95px, 0.35fr) 1fr auto;
-  min-height: 76px;
-  padding: 12px 16px;
+  grid-template-columns: minmax(86px, 0.3fr) 1fr auto;
+  min-height: 58px;
+  padding: 8px 12px;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   text-align: left;
 }
 .matching-targets button > span {
@@ -2601,7 +2604,21 @@ button[data-slot='button'] {
   text-align: center;
 }
 .matching-targets button > strong {
+  font-size: 1rem;
+}
+.alias-drag-ghost {
+  position: fixed;
+  z-index: 100;
+  padding: 9px 18px;
+  border: 2px solid #2f7566;
+  border-radius: 12px;
+  background: #dcece5;
+  color: #245b50;
   font-size: 1.05rem;
+  font-weight: 900;
+  pointer-events: none;
+  box-shadow: 0 10px 24px rgb(36 91 80 / 25%);
+  transform: translate(-50%, -65%);
 }
 .matching-targets button.correct,
 .category-choices button.correct,
@@ -3021,7 +3038,6 @@ button[data-slot='button'] {
 
 @media (max-width: 720px) {
   .ci-comic-grid,
-  .matching-board,
   .work-classifier,
   .style-showcase,
   .style-practice {
@@ -3038,8 +3054,36 @@ button[data-slot='button'] {
     left: auto;
     transform: translateX(50%) rotate(90deg);
   }
+  .matching-board {
+    grid-template-columns: minmax(92px, 0.42fr) minmax(0, 1.58fr);
+    gap: 8px;
+  }
+  .matching-bank,
+  .matching-targets {
+    gap: 7px;
+  }
+  .matching-bank button {
+    min-height: 55px;
+    padding: 8px 6px;
+    font-size: 1rem;
+  }
   .matching-targets button {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(68px, 0.42fr) 1fr;
+    min-height: 55px;
+    padding: 6px 8px;
+    gap: 7px;
+  }
+  .matching-targets button > span {
+    padding: 6px 4px;
+    font-size: 0.82rem;
+  }
+  .matching-targets button > strong {
+    font-size: 0.88rem;
+    line-height: 1.35;
+  }
+  .matching-targets button > small {
+    grid-column: 1 / -1;
+    text-align: center;
   }
   .knowledge-page {
     padding: 20px 14px;
