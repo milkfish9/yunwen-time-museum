@@ -2762,6 +2762,14 @@ button[data-slot='button'] {
 .style-showcase article > strong {
   color: #2c6759;
 }
+.style-showcase .style-note {
+  display: block;
+  margin-top: 22px;
+  padding-top: 13px;
+  border-top: 1px solid rgb(71 105 91 / 25%);
+  font-size: 1.13rem;
+  line-height: 1.6;
+}
 .style-practice {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2965,12 +2973,20 @@ button[data-slot='button'] {
 .certificate-signature {
   display: flex;
   margin-top: 36px;
-  justify-content: space-between;
+  justify-content: center;
   gap: 14px;
   border-top: 1px solid #aa936e;
   padding-top: 14px;
   color: #6a5940;
   font-weight: 800;
+}
+.certificate-credit {
+  position: absolute;
+  right: 14px;
+  bottom: 8px;
+  color: rgb(91 72 46 / 68%);
+  font-size: 0.67rem;
+  letter-spacing: 0.02em;
 }
 @keyframes certificate-arrive {
   from {
@@ -3040,5 +3056,10 @@ button[data-slot='button'] {
   }
   .certificate-signature {
     flex-direction: column;
+  }
+  .certificate-credit {
+    right: 9px;
+    bottom: 6px;
+    font-size: 0.58rem;
   }
 }

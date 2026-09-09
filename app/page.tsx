@@ -246,6 +246,7 @@ function YuMeiRenScore({ work }: { work: (typeof yuMeiRenWorks)[number] }) {
                     rx="4"
                   />
                   <text
+                    key={`${work.id}-${point.index}`}
                     className="lyric-character"
                     x={point.x}
                     y={baseY + 81}
@@ -1302,6 +1303,11 @@ function TypesPage({ next }: { next: () => void }) {
 
 const stylePractice = [
   {
+    title: '蘇軾〈江城子〉',
+    excerpt: '會挽雕弓如滿月，西北望，射天狼。',
+    answer: '豪放派',
+  },
+  {
     title: '柳永〈雨霖鈴〉',
     excerpt: '今宵酒醒何處？楊柳岸曉風殘月。',
     answer: '婉約派',
@@ -1310,11 +1316,6 @@ const stylePractice = [
     title: '李清照〈醉花陰〉',
     excerpt: '莫道不銷魂，簾捲西風，人比黃花瘦。',
     answer: '婉約派',
-  },
-  {
-    title: '蘇軾〈江城子〉',
-    excerpt: '會挽雕弓如滿月，西北望，射天狼。',
-    answer: '豪放派',
   },
   {
     title: '辛棄疾〈破陣子〉',
@@ -1342,7 +1343,7 @@ function StylesPage({ next }: { next: () => void }) {
           <p className="poets">柳永・李清照・秦觀・周邦彥</p>
           <h3>李清照〈聲聲慢〉</h3>
           <p>尋尋覓覓，冷冷清清，淒淒慘慘戚戚。乍暖還寒時候，最難將息。</p>
-          <strong>細膩含蓄，善寫離愁與生活情思</strong>
+          <strong className="style-note">細膩含蓄，善寫離愁與生活情思</strong>
         </article>
         <article className="bold">
           <span>另一重要風格</span>
@@ -1352,7 +1353,7 @@ function StylesPage({ next }: { next: () => void }) {
           <p>
             大江東去，浪淘盡，千古風流人物。亂石穿空，驚濤拍岸，捲起千堆雪。
           </p>
-          <strong>氣象開闊，常寫歷史、志向與家國</strong>
+          <strong className="style-note">氣象開闊，常寫歷史、志向與家國</strong>
         </article>
       </div>
       <div className="style-practice">
@@ -1716,9 +1717,11 @@ function CheckpointPage() {
           <span>恭喜你完成「詞學闖關戰」</span>
           <strong>已能辨識詞的由來、規則、類別與風格</strong>
           <div className="certificate-signature">
-            <span>發想設計・蘇牧盈老師</span>
             <span>詞學小達人・認證通過</span>
           </div>
+          <small className="certificate-credit">
+            發想設計：蘇牧盈老師｜Codex 協助建置
+          </small>
         </section>
       )}
     </section>
@@ -1818,7 +1821,7 @@ function CreatePage() {
             </div>
             <small>教學示意旋律｜宋代原曲多已失傳</small>
           </header>
-          <YuMeiRenScore key={selectedWork.id} work={selectedWork} />
+          <YuMeiRenScore work={selectedWork} />
           <div className="score-legend">
             <span>
               <i className="note-dot" /> 五線譜上的音
