@@ -2094,25 +2094,21 @@ function playWheelLock() {
 }
 
 function NumberWheel({
-  answer,
+  value,
   min = 3,
   max = 8,
   label,
-  onCorrect,
+  locked = false,
+  onChange,
 }: {
-  answer: number;
+  value: number;
   min?: number;
   max?: number;
   label: string;
-  onCorrect: () => void;
+  locked?: boolean;
+  onChange: (value: number) => void;
 }) {
-  const [value, setValue] = useState(answer === min ? min + 1 : answer - 1);
   const touchStart = useRef<number | null>(null);
-  const locked = value === answer;
-
-  useEffect(() => {
-    if (locked) onCorrect();
-  }, [locked, onCorrect]);
 
   function move(direction: -1 | 1) {
     if (locked) return;
@@ -2122,8 +2118,7 @@ function NumberWheel({
         : value + direction < min
           ? max
           : value + direction;
-    setValue(next);
-    if (next === answer) playWheelLock();
+    onChange(next);
   }
 
   const previous = value === min ? max : value - 1;
@@ -2171,7 +2166,117 @@ function NumberWheel({
       >
         <ChevronDown />
       </button>
-      <i aria-hidden="true">{locked ? '✓' : ''}</i>
+    </div>
+  );
+}
+
+function DiscoveryFlipCard({
+  item,
+  dramatic = false,
+  flipped,
+  onFlip,
+}: {
+  item: { key: string; front: string; back: string };
+  dramatic?: boolean;
+  flipped: boolean;
+  onFlip: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={`discovery-flip-card ${dramatic ? 'dramatic' : ''} ${flipped ? 'flipped' : ''}`}
+      onClick={onFlip}
+      aria-pressed={flipped}
+      aria-label={
+        flipped ? `${item.front}${item.back}` : `${item.front}點擊翻牌`
+      }
+    >
+      <span className="flip-card-inner">
+        <span className="flip-card-front">
+          <small>點一下翻牌</small>
+          <strong>{item.front}</strong>
+        </span>
+        <span className="flip-card-back">
+          <strong>{item.back}</strong>
+        </span>
+      </span>
+    </button>
+  );
+}
+
+function DiscoveryFlipReveal({
+  poem,
+  rhymePositions,
+  onContinue,
+  continueLabel,
+}: {
+  poem: JuejuPoem;
+  rhymePositions: number[];
+  onContinue: () => void;
+  continueLabel: string;
+}) {
+  const [flipped, setFlipped] = useState<string[]>([]);
+  const wording = poem.charactersPerLine === 5 ? '五言' : '七言';
+  const facts = [
+    { key: 'lines', front: '共有幾句？', back: `${poem.lineCount}句` },
+    {
+      key: 'characters',
+      front: '每句幾字？',
+      back: `${poem.charactersPerLine}字`,
+    },
+    {
+      key: 'rhymes',
+      front: '哪幾句押韻？',
+      back: `第${rhymePositions.join('、')}句`,
+    },
+  ];
+  const names = [
+    {
+      key: 'wording',
+      front: `每句${poem.charactersPerLine}字叫什麼？`,
+      back: wording,
+    },
+    { key: 'form', front: '共有4句叫什麼？', back: '絕句' },
+  ];
+  const allFlipped = flipped.length === facts.length + names.length;
+
+  function flip(key: string) {
+    setFlipped((current) =>
+      current.includes(key) ? current : [...current, key],
+    );
+  }
+
+  return (
+    <div className="jueju-reveal" aria-live="polite">
+      <p className="flip-reveal-lead">把剛剛發現的結果一張張翻出來</p>
+      <div className="fact-flip-grid">
+        {facts.map((item) => (
+          <DiscoveryFlipCard
+            key={item.key}
+            item={item}
+            flipped={flipped.includes(item.key)}
+            onFlip={() => flip(item.key)}
+          />
+        ))}
+      </div>
+      <div className="name-flip-grid">
+        {names.map((item) => (
+          <DiscoveryFlipCard
+            key={item.key}
+            item={item}
+            dramatic
+            flipped={flipped.includes(item.key)}
+            onFlip={() => flip(item.key)}
+          />
+        ))}
+      </div>
+      {allFlipped && (
+        <div className="poem-kind-finale">
+          <span>觀察完成</span>
+          <h3>沒錯！這就是{poem.kind}！</h3>
+          <Button onClick={onContinue}>{continueLabel}</Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -2187,16 +2292,21 @@ function PoemObservation({
   continueLabel: string;
   candidateLabel?: string;
 }) {
-  const [lineCountReady, setLineCountReady] = useState(false);
-  const [characterCountReady, setCharacterCountReady] = useState(false);
+  const [lineChoice, setLineChoice] = useState(
+    poem.lineCount === 3 ? 4 : poem.lineCount - 1,
+  );
+  const [characterChoice, setCharacterChoice] = useState(
+    poem.charactersPerLine === 4 ? 5 : poem.charactersPerLine - 1,
+  );
+  const [countsLocked, setCountsLocked] = useState(false);
+  const [countFeedback, setCountFeedback] = useState('');
   const [selectedRhymes, setSelectedRhymes] = useState<number[]>([]);
   const [lastAttempt, setLastAttempt] = useState({ index: -1, count: 0 });
   const requiredRhymes = poem.endings.flatMap((ending, index) =>
     ending.rhymes ? [index] : [],
   );
   const complete =
-    lineCountReady &&
-    characterCountReady &&
+    countsLocked &&
     requiredRhymes.every((index) => selectedRhymes.includes(index));
 
   return (
@@ -2232,6 +2342,9 @@ function PoemObservation({
                 }
               }}
             >
+              <em className="poem-line-number" aria-label={`第${index + 1}句`}>
+                {index + 1}
+              </em>
               <span>{line.slice(0, -1)}</span>
               <b className={revealed ? 'ending-revealed' : ''}>
                 {ending.character}
@@ -2247,11 +2360,15 @@ function PoemObservation({
           <p>句子共有</p>
           <NumberWheel
             key={`${poem.id}-lines`}
-            answer={poem.lineCount}
+            value={lineChoice}
             min={3}
             max={6}
             label="選擇詩的句數"
-            onCorrect={() => setLineCountReady(true)}
+            locked={countsLocked}
+            onChange={(value) => {
+              setLineChoice(value);
+              setCountFeedback('');
+            }}
           />
           <p>句</p>
         </div>
@@ -2259,50 +2376,58 @@ function PoemObservation({
           <p>每句共有</p>
           <NumberWheel
             key={`${poem.id}-characters`}
-            answer={poem.charactersPerLine}
+            value={characterChoice}
             min={4}
             max={8}
             label="選擇每句的字數"
-            onCorrect={() => setCharacterCountReady(true)}
+            locked={countsLocked}
+            onChange={(value) => {
+              setCharacterChoice(value);
+              setCountFeedback('');
+            }}
           />
           <p>個字</p>
         </div>
         <div className="rhyme-prompt">
-          <strong>點出句尾有押韻的詩句。</strong>
-          <span>點擊任何一句，都能看見它的句尾聲音線索。</span>
+          <strong>點擊有押韻的句子，看看是哪幾句需要押韻！</strong>
+        </div>
+        <div className="count-confirm-area">
+          <Button
+            onClick={() => {
+              if (
+                lineChoice === poem.lineCount &&
+                characterChoice === poem.charactersPerLine
+              ) {
+                setCountsLocked(true);
+                setCountFeedback('句數與字數都觀察正確！');
+                playWheelLock();
+              } else {
+                setCountFeedback('再數一次：先看有幾句，再看每句有幾個字。');
+              }
+            }}
+            disabled={countsLocked}
+          >
+            {countsLocked ? '已確定句數與字數' : '確定句數與字數'}
+          </Button>
+          {countFeedback && (
+            <output className={countsLocked ? 'correct' : ''}>
+              {countFeedback}
+            </output>
+          )}
         </div>
       </div>
 
-      {candidateLabel && lineCountReady && characterCountReady && !complete && (
+      {candidateLabel && countsLocked && !complete && (
         <div className="candidate-banner">{candidateLabel}</div>
       )}
 
       {complete && (
-        <div className="jueju-reveal" aria-live="polite">
-          <div className="observation-results">
-            <span>
-              共有 <b>{poem.lineCount}句</b>
-            </span>
-            <span>
-              每句 <b>{poem.charactersPerLine}字</b>
-            </span>
-            <span>
-              第 <b>{requiredRhymes.map((index) => index + 1).join('、')}句</b>{' '}
-              押韻
-            </span>
-          </div>
-          <div className="naming-morph">
-            <span>
-              每句{poem.charactersPerLine}字 <ArrowRight />{' '}
-              <b>{poem.charactersPerLine === 5 ? '五言' : '七言'}</b>
-            </span>
-            <span>
-              共有4句 <ArrowRight /> <b>絕句</b>
-            </span>
-          </div>
-          <h3>沒錯！這就是{poem.kind}！</h3>
-          <Button onClick={onContinue}>{continueLabel}</Button>
-        </div>
+        <DiscoveryFlipReveal
+          poem={poem}
+          rhymePositions={requiredRhymes.map((index) => index + 1)}
+          onContinue={onContinue}
+          continueLabel={continueLabel}
+        />
       )}
     </section>
   );
@@ -2321,7 +2446,9 @@ function PoemMiniCard({ poem }: { poem: JuejuPoem }) {
 }
 
 function JuejuReview({ onComplete }: { onComplete: () => void }) {
+  const [lineChoice, setLineChoice] = useState(3);
   const [lineReady, setLineReady] = useState(false);
+  const [lineFeedback, setLineFeedback] = useState('');
   const [characterChoices, setCharacterChoices] = useState<number[]>([]);
   const [selectedRule, setSelectedRule] = useState<string | null>(null);
   const [ruleMatches, setRuleMatches] = useState<Record<string, string>>({});
@@ -2348,13 +2475,38 @@ function JuejuReview({ onComplete }: { onComplete: () => void }) {
         <div className="wheel-question compact-wheel-question">
           <p>絕句共有</p>
           <NumberWheel
-            answer={4}
+            value={lineChoice}
             min={3}
             max={6}
             label="選擇絕句句數"
-            onCorrect={() => setLineReady(true)}
+            locked={lineReady}
+            onChange={(value) => {
+              setLineChoice(value);
+              setLineFeedback('');
+            }}
           />
           <p>句</p>
+        </div>
+        <div className="count-confirm-area review-confirm-area">
+          <Button
+            disabled={lineReady}
+            onClick={() => {
+              if (lineChoice === 4) {
+                setLineReady(true);
+                setLineFeedback('正確，絕句共有4句。');
+                playWheelLock();
+              } else {
+                setLineFeedback('再想想看，絕句共有幾句？');
+              }
+            }}
+          >
+            {lineReady ? '已確定' : '確定'}
+          </Button>
+          {lineFeedback && (
+            <output className={lineReady ? 'correct' : ''}>
+              {lineFeedback}
+            </output>
+          )}
         </div>
       </div>
 

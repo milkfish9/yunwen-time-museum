@@ -3212,22 +3212,38 @@ button[data-slot='button'] {
 }
 .poem-lines {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
 }
 .poem-lines button {
   position: relative;
   min-height: 92px;
-  padding: 17px 72px 17px 22px;
+  padding: 17px 12px 17px 30px;
   border: 2px solid #afc2c8;
   border-radius: 16px;
   background: #fff;
   color: #203f49;
-  font-size: clamp(1.35rem, 2.6vw, 1.9rem);
+  font-size: clamp(0.82rem, 1.38vw, 1.55rem);
   font-weight: 800;
-  letter-spacing: 0.12em;
-  text-align: left;
+  letter-spacing: 0.04em;
+  text-align: center;
   transition: 0.2s ease;
+}
+.poem-line-number {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 50%;
+  background: #e3ecef;
+  color: #496772;
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0;
 }
 .poem-lines button:hover,
 .poem-lines button:focus-visible {
@@ -3248,12 +3264,14 @@ button[data-slot='button'] {
 }
 .poem-lines button small {
   position: absolute;
-  right: 14px;
-  top: 50%;
+  right: 7px;
+  bottom: 7px;
   color: #8c4b2d;
   font-size: 0.85rem;
   letter-spacing: 0;
-  transform: translateY(-50%);
+  padding: 2px 5px;
+  border-radius: 7px;
+  background: #fff8e9;
 }
 .poem-lines button.rhyme-selected {
   border-color: #23806f;
@@ -3323,34 +3341,21 @@ button[data-slot='button'] {
   font-size: 0.9rem;
 }
 .wheel-window strong {
+  display: grid;
   width: 100%;
+  height: 100%;
+  margin: 0;
+  place-items: center;
   border-block: 1px solid #bdcbd0;
   color: #173d4b;
   font-size: 2rem;
-  line-height: 1.45;
-}
-.number-wheel > i {
-  position: absolute;
-  right: -10px;
-  top: 68px;
-  display: grid;
-  width: 29px;
-  height: 29px;
-  place-items: center;
-  border-radius: 50%;
-  background: transparent;
-  color: transparent;
-  font-style: normal;
-  font-weight: 950;
+  line-height: 1;
+  text-align: center;
 }
 .number-wheel.locked .wheel-window {
   border-color: #23806f;
   box-shadow: 0 0 0 5px rgb(35 128 111 / 12%);
   animation: wheel-lock 0.25s ease;
-}
-.number-wheel.locked > i {
-  background: #23806f;
-  color: white;
 }
 .rhyme-prompt {
   grid-column: 1 / -1;
@@ -3363,8 +3368,23 @@ button[data-slot='button'] {
 .rhyme-prompt strong {
   font-size: 1.25rem;
 }
-.rhyme-prompt span {
-  color: #c9dce1;
+.count-confirm-area {
+  grid-column: 1 / -1;
+  display: grid;
+  justify-items: center;
+  gap: 9px;
+}
+.count-confirm-area button {
+  min-width: min(340px, 100%);
+}
+.count-confirm-area output {
+  margin: 0;
+  color: #9b4c31;
+  font-weight: 800;
+  text-align: center;
+}
+.count-confirm-area output.correct {
+  color: #206c5e;
 }
 .jueju-reveal {
   padding: 24px;
@@ -3374,43 +3394,121 @@ button[data-slot='button'] {
   text-align: center;
   animation: reveal-rise 0.35s ease both;
 }
-.observation-results,
-.naming-morph {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-}
-.observation-results span {
-  padding: 8px 14px;
-  border-radius: 99px;
-  background: white;
+.flip-reveal-lead {
+  margin: 0 0 16px;
   color: #31535d;
+  font-weight: 900;
 }
-.naming-morph {
-  margin: 18px 0;
+.fact-flip-grid,
+.name-flip-grid {
+  display: grid;
+  gap: 12px;
 }
-.naming-morph span {
-  display: flex;
-  min-width: 245px;
-  padding: 13px 18px;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  border-radius: 14px;
+.fact-flip-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.name-flip-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 14px;
+}
+.discovery-flip-card {
+  min-height: 132px;
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  perspective: 900px;
+  cursor: pointer;
+}
+.discovery-flip-card.dramatic {
+  min-height: 178px;
+}
+.flip-card-inner {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  transform-style: preserve-3d;
+  transition: transform 0.62s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.discovery-flip-card.flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  padding: 16px;
+  place-content: center;
+  gap: 8px;
+  border: 2px solid #6f929c;
+  border-radius: 18px;
+  backface-visibility: hidden;
+  box-shadow: 0 10px 24px rgb(26 68 80 / 14%);
+}
+.flip-card-front {
+  background: #fffdf7;
+  color: #244955;
+}
+.flip-card-front small {
+  color: #77909a;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+.flip-card-front strong {
+  font-size: clamp(1rem, 1.6vw, 1.28rem);
+}
+.flip-card-back {
+  background: linear-gradient(145deg, #173d4b, #2a6a70);
+  color: var(--lime);
+  transform: rotateY(180deg);
+}
+.flip-card-back strong {
+  font-size: clamp(2.1rem, 5vw, 4.6rem);
+  line-height: 1;
+  text-shadow: 0 0 22px rgb(215 245 116 / 34%);
+}
+.dramatic .flip-card-front {
+  border-width: 3px;
+  border-color: #bc774b;
+  background: linear-gradient(145deg, #fff8e9, #fff);
+}
+.dramatic .flip-card-back {
+  border: 4px solid #d7f574;
+  background: linear-gradient(145deg, #7e321f, #b85d31);
+}
+.dramatic .flip-card-back strong {
+  color: white;
+  font-size: clamp(3.2rem, 8vw, 6.6rem);
+  letter-spacing: 0.12em;
+  text-shadow: 0 5px 0 rgb(74 26 15 / 34%);
+}
+.poem-kind-finale {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 18px;
   background: #173d4b;
   color: white;
+  animation: structure-card-complete 0.5s ease both;
 }
-.naming-morph b {
+.poem-kind-finale > span {
   color: var(--lime);
-  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
 }
-.jueju-reveal h3 {
-  color: #205f54;
-  font-size: clamp(1.6rem, 3vw, 2.3rem);
+.poem-kind-finale h3 {
+  margin: 7px 0 17px;
+  color: white;
+  font-size: clamp(2rem, 5vw, 4.4rem);
 }
-.jueju-reveal button {
+.poem-kind-finale button {
   max-width: 680px;
+}
+.review-confirm-area {
+  justify-items: start;
+  margin-top: 12px;
 }
 .poem-mini-grid {
   display: grid;
@@ -3702,8 +3800,10 @@ button[data-slot='button'] {
   }
   .poem-lines button {
     min-height: 72px;
-    padding: 12px 66px 12px 15px;
+    padding: 12px 66px 12px 42px;
     font-size: 1.25rem;
+    letter-spacing: 0.1em;
+    text-align: left;
   }
   .poem-questions,
   .poem-mini-grid,
@@ -3721,6 +3821,14 @@ button[data-slot='button'] {
   .rule-label-bank {
     grid-template-columns: 1fr;
   }
+  .fact-flip-grid,
+  .name-flip-grid {
+    grid-template-columns: 1fr;
+  }
+  .discovery-flip-card,
+  .discovery-flip-card.dramatic {
+    min-height: 128px;
+  }
   .rhyme-comparison-table > div {
     grid-template-columns: minmax(86px, 1.3fr) repeat(4, 1fr);
     gap: 4px;
@@ -3731,5 +3839,11 @@ button[data-slot='button'] {
     min-height: 42px;
     padding: 4px;
     font-size: 0.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flip-card-inner {
+    transition-duration: 0.01ms;
   }
 }
