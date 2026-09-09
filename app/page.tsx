@@ -6,6 +6,8 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
+  ChevronDown,
+  ChevronUp,
   CircleDot,
   Dices,
   Grid2X2,
@@ -31,6 +33,7 @@ import {
   flattenPattern,
   wheelTargetDegrees,
 } from '@/lib/ci-workshop';
+import { juejuPoems, rhymeRules, type JuejuPoem } from '@/data/jueju';
 
 type PageId =
   | 'origin'
@@ -38,7 +41,9 @@ type PageId =
   | 'aliases'
   | 'types'
   | 'styles'
-  | 'checkpoint';
+  | 'checkpoint'
+  | 'jueju'
+  | 'jueju-quality';
 type PublishedWork = {
   id: string;
   author: string;
@@ -54,6 +59,10 @@ const PAGES: { id: PageId; label: string; title: string }[] = [
   { id: 'types', label: '04 詞的類別', title: '用字數判斷小令、中調、長調' },
   { id: 'styles', label: '05 詞的風格', title: '婉約與豪放，各有什麼氣質？' },
   { id: 'checkpoint', label: '06 詞學闖關戰', title: '把學到的詞學知識帶走' },
+];
+const JINTISHI_PAGES: { id: PageId; label: string; title: string }[] = [
+  { id: 'jueju', label: '01 絕句概念', title: '自己找出絕句的基本結構' },
+  { id: 'jueju-quality', label: '02 絕句品管局', title: '用規則檢驗絕句' },
 ];
 
 function randomIndex(length: number) {
@@ -79,14 +88,17 @@ function ShapeGlyph({ shape }: { shape: number[] }) {
   );
 }
 
-function TimelineRail() {
+function TimelineRail({ currentHall = '詞' }: { currentHall?: string }) {
   return (
-    <aside className="era-rail" aria-label="韻文時間軸，目前位於詞">
+    <aside
+      className="era-rail"
+      aria-label={`韻文時間軸，目前位於${currentHall}`}
+    >
       <span className="rail-title">你在這裡</span>
       <div className="rail-line">
         {halls.map((hall) => (
           <div
-            className={`rail-stop ${hall.name === '詞' ? 'current' : ''}`}
+            className={`rail-stop ${hall.name === currentHall ? 'current' : ''}`}
             key={hall.name}
           >
             <i />
@@ -2063,16 +2075,636 @@ function CreatePage() {
   );
 }
 
+function playWheelLock() {
+  try {
+    const audio = new AudioContext();
+    const oscillator = audio.createOscillator();
+    const gain = audio.createGain();
+    oscillator.type = 'square';
+    oscillator.frequency.setValueAtTime(130, audio.currentTime);
+    gain.gain.setValueAtTime(0.045, audio.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.045);
+    oscillator.connect(gain).connect(audio.destination);
+    oscillator.start();
+    oscillator.stop(audio.currentTime + 0.045);
+    oscillator.addEventListener('ended', () => audio.close());
+  } catch {
+    // The visual lock remains available when a browser blocks generated audio.
+  }
+}
+
+function NumberWheel({
+  answer,
+  min = 3,
+  max = 8,
+  label,
+  onCorrect,
+}: {
+  answer: number;
+  min?: number;
+  max?: number;
+  label: string;
+  onCorrect: () => void;
+}) {
+  const [value, setValue] = useState(answer === min ? min + 1 : answer - 1);
+  const touchStart = useRef<number | null>(null);
+  const locked = value === answer;
+
+  useEffect(() => {
+    if (locked) onCorrect();
+  }, [locked, onCorrect]);
+
+  function move(direction: -1 | 1) {
+    if (locked) return;
+    const next =
+      value + direction > max
+        ? min
+        : value + direction < min
+          ? max
+          : value + direction;
+    setValue(next);
+    if (next === answer) playWheelLock();
+  }
+
+  const previous = value === min ? max : value - 1;
+  const next = value === max ? min : value + 1;
+
+  return (
+    <div
+      className={`number-wheel ${locked ? 'locked' : ''}`}
+      aria-label={label}
+    >
+      <button
+        type="button"
+        onClick={() => move(-1)}
+        disabled={locked}
+        aria-label="往上一個數字"
+      >
+        <ChevronUp />
+      </button>
+      <div
+        className="wheel-window"
+        onWheel={(event) => {
+          event.preventDefault();
+          move(event.deltaY > 0 ? 1 : -1);
+        }}
+        onPointerDown={(event) => {
+          touchStart.current = event.clientY;
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }}
+        onPointerUp={(event) => {
+          if (touchStart.current === null) return;
+          const distance = touchStart.current - event.clientY;
+          if (Math.abs(distance) > 14) move(distance > 0 ? 1 : -1);
+          touchStart.current = null;
+        }}
+      >
+        <span>{previous}</span>
+        <strong>{value}</strong>
+        <span>{next}</span>
+      </div>
+      <button
+        type="button"
+        onClick={() => move(1)}
+        disabled={locked}
+        aria-label="往下一個數字"
+      >
+        <ChevronDown />
+      </button>
+      <i aria-hidden="true">{locked ? '✓' : ''}</i>
+    </div>
+  );
+}
+
+function PoemObservation({
+  poem,
+  onContinue,
+  continueLabel,
+  candidateLabel,
+}: {
+  poem: JuejuPoem;
+  onContinue: () => void;
+  continueLabel: string;
+  candidateLabel?: string;
+}) {
+  const [lineCountReady, setLineCountReady] = useState(false);
+  const [characterCountReady, setCharacterCountReady] = useState(false);
+  const [selectedRhymes, setSelectedRhymes] = useState<number[]>([]);
+  const [lastAttempt, setLastAttempt] = useState({ index: -1, count: 0 });
+  const requiredRhymes = poem.endings.flatMap((ending, index) =>
+    ending.rhymes ? [index] : [],
+  );
+  const complete =
+    lineCountReady &&
+    characterCountReady &&
+    requiredRhymes.every((index) => selectedRhymes.includes(index));
+
+  return (
+    <section className="poem-observation" aria-labelledby={`${poem.id}-title`}>
+      <header className="poem-title-row">
+        <div>
+          <span>觀察作品</span>
+          <h2 id={`${poem.id}-title`}>{poem.title}</h2>
+        </div>
+        <strong>{poem.author}</strong>
+      </header>
+
+      <div className="poem-lines" aria-label={`${poem.title}全文`}>
+        {poem.lines.map((line, index) => {
+          const ending = poem.endings[index];
+          const correct = selectedRhymes.includes(index);
+          const revealed = correct || lastAttempt.index === index;
+          const wrong = lastAttempt.index === index && !ending.rhymes;
+          return (
+            <button
+              key={`${line}-${wrong ? lastAttempt.count : 0}`}
+              type="button"
+              className={`${correct ? 'rhyme-selected' : ''} ${wrong ? 'rhyme-wrong' : ''}`}
+              onClick={() => {
+                setLastAttempt((current) => ({
+                  index,
+                  count: current.count + 1,
+                }));
+                if (ending.rhymes) {
+                  setSelectedRhymes((current) =>
+                    current.includes(index) ? current : [...current, index],
+                  );
+                }
+              }}
+            >
+              <span>{line.slice(0, -1)}</span>
+              <b className={revealed ? 'ending-revealed' : ''}>
+                {ending.character}
+              </b>
+              {revealed && <small>{ending.zhuyin}</small>}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="poem-questions">
+        <div className="wheel-question">
+          <p>句子共有</p>
+          <NumberWheel
+            key={`${poem.id}-lines`}
+            answer={poem.lineCount}
+            min={3}
+            max={6}
+            label="選擇詩的句數"
+            onCorrect={() => setLineCountReady(true)}
+          />
+          <p>句</p>
+        </div>
+        <div className="wheel-question">
+          <p>每句共有</p>
+          <NumberWheel
+            key={`${poem.id}-characters`}
+            answer={poem.charactersPerLine}
+            min={4}
+            max={8}
+            label="選擇每句的字數"
+            onCorrect={() => setCharacterCountReady(true)}
+          />
+          <p>個字</p>
+        </div>
+        <div className="rhyme-prompt">
+          <strong>點出句尾有押韻的詩句。</strong>
+          <span>點擊任何一句，都能看見它的句尾聲音線索。</span>
+        </div>
+      </div>
+
+      {candidateLabel && lineCountReady && characterCountReady && !complete && (
+        <div className="candidate-banner">{candidateLabel}</div>
+      )}
+
+      {complete && (
+        <div className="jueju-reveal" aria-live="polite">
+          <div className="observation-results">
+            <span>
+              共有 <b>{poem.lineCount}句</b>
+            </span>
+            <span>
+              每句 <b>{poem.charactersPerLine}字</b>
+            </span>
+            <span>
+              第 <b>{requiredRhymes.map((index) => index + 1).join('、')}句</b>{' '}
+              押韻
+            </span>
+          </div>
+          <div className="naming-morph">
+            <span>
+              每句{poem.charactersPerLine}字 <ArrowRight />{' '}
+              <b>{poem.charactersPerLine === 5 ? '五言' : '七言'}</b>
+            </span>
+            <span>
+              共有4句 <ArrowRight /> <b>絕句</b>
+            </span>
+          </div>
+          <h3>沒錯！這就是{poem.kind}！</h3>
+          <Button onClick={onContinue}>{continueLabel}</Button>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function PoemMiniCard({ poem }: { poem: JuejuPoem }) {
+  return (
+    <article className="poem-mini-card">
+      <h3>〈{poem.title}〉</h3>
+      <span>{poem.author}</span>
+      <strong>4句</strong>
+      <strong>每句{poem.charactersPerLine}字</strong>
+      <b>→ {poem.kind}</b>
+    </article>
+  );
+}
+
+function JuejuReview({ onComplete }: { onComplete: () => void }) {
+  const [lineReady, setLineReady] = useState(false);
+  const [characterChoices, setCharacterChoices] = useState<number[]>([]);
+  const [selectedRule, setSelectedRule] = useState<string | null>(null);
+  const [ruleMatches, setRuleMatches] = useState<Record<string, string>>({});
+  const charactersReady =
+    characterChoices.length === 2 &&
+    characterChoices.includes(5) &&
+    characterChoices.includes(7);
+  const rulesReady = rhymeRules.every(
+    (item) => ruleMatches[item.position] === item.rule,
+  );
+  const complete = lineReady && charactersReady && rulesReady;
+
+  useEffect(() => {
+    if (complete) onComplete();
+  }, [complete, onComplete]);
+
+  return (
+    <section className="jueju-review" aria-labelledby="jueju-review-title">
+      <span className="act-number">本頁總複習</span>
+      <h2 id="jueju-review-title">《完成你的絕句結構卡》</h2>
+
+      <div className="review-step">
+        <h3>一、絕句共有幾句？</h3>
+        <div className="wheel-question compact-wheel-question">
+          <p>絕句共有</p>
+          <NumberWheel
+            answer={4}
+            min={3}
+            max={6}
+            label="選擇絕句句數"
+            onCorrect={() => setLineReady(true)}
+          />
+          <p>句</p>
+        </div>
+      </div>
+
+      <div className="review-step">
+        <h3>二、絕句每句可能有幾個字？</h3>
+        <div className="character-choice-grid">
+          {[5, 6, 7, 8].map((number) => (
+            <button
+              key={number}
+              type="button"
+              className={
+                characterChoices.includes(number)
+                  ? number === 5 || number === 7
+                    ? 'correct'
+                    : 'wrong'
+                  : ''
+              }
+              onClick={() =>
+                setCharacterChoices((current) =>
+                  current.includes(number)
+                    ? current.filter((item) => item !== number)
+                    : [...current, number],
+                )
+              }
+            >
+              {number}字
+            </button>
+          ))}
+        </div>
+        {charactersReady && (
+          <div className="character-morph">
+            <span>
+              <b>5字</b>
+              <ArrowRight />
+              五言絕句
+            </span>
+            <span>
+              <b>7字</b>
+              <ArrowRight />
+              七言絕句
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className="review-step">
+        <h3>三、把押韻規則放到正確句位</h3>
+        <div className="rule-label-bank" aria-label="押韻規則標籤">
+          {['一定押韻', '可押可不押', '不押韻'].map((rule) => (
+            <button
+              type="button"
+              key={rule}
+              className={selectedRule === rule ? 'selected' : ''}
+              onClick={() => setSelectedRule(rule)}
+            >
+              {rule}
+            </button>
+          ))}
+        </div>
+        <div className="rule-position-grid">
+          {rhymeRules.map((item) => {
+            const answer = ruleMatches[item.position];
+            const right = answer === item.rule;
+            return (
+              <button
+                type="button"
+                key={item.position}
+                className={answer ? (right ? 'correct' : 'wrong') : ''}
+                onClick={() => {
+                  if (!selectedRule) return;
+                  setRuleMatches((current) => ({
+                    ...current,
+                    [item.position]: selectedRule,
+                  }));
+                  setSelectedRule(null);
+                }}
+              >
+                <strong>{item.position}</strong>
+                <span>{answer ?? '放入規則'}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function JuejuPage({ next }: { next: () => void }) {
+  const [stage, setStage] = useState(0);
+  const [commonPositions, setCommonPositions] = useState<number[]>([]);
+  const [reviewComplete, setReviewComplete] = useState(false);
+  const [structureVisible, setStructureVisible] = useState(true);
+  const jingye = juejuPoems[0];
+  const fengqiao = juejuPoems[1];
+  const dengguan = juejuPoems[2];
+
+  function moveTo(nextStage: number) {
+    setStage(nextStage);
+    window.setTimeout(
+      () => window.scrollTo({ top: 0, behavior: 'smooth' }),
+      30,
+    );
+  }
+
+  if (stage === 0) {
+    return (
+      <section
+        className={`jueju-lesson structure-opening ${structureVisible ? '' : 'leaving'}`}
+      >
+        <span className="jueju-section-label">近體詩館 · 第一分頁</span>
+        <h1>什麼叫「結構」？</h1>
+        <div className="car-structure-card">
+          <Image
+            src="/jueju-car-structure.png"
+            alt="汽車車身、車門、車輪與座椅的分解結構"
+            width={1536}
+            height={1024}
+            priority
+          />
+          <span className="car-label body-label">車身</span>
+          <span className="car-label door-label">車門</span>
+          <span className="car-label wheel-label">車輪</span>
+          <span className="car-label seat-label">座椅</span>
+        </div>
+        <p className="structure-definition">
+          結構，就是一個東西由哪些部分組成，以及這些部分怎麼排列。
+        </p>
+        <Button
+          onClick={() => {
+            setStructureVisible(false);
+            window.setTimeout(() => moveTo(1), 320);
+          }}
+        >
+          我了解結構了 <ArrowRight />
+        </Button>
+      </section>
+    );
+  }
+
+  if (stage === 1) {
+    return (
+      <section className="jueju-lesson">
+        <p className="poem-entry-question">
+          那麼，這首耳熟能詳的詩，它的結構長怎麼樣呢？
+        </p>
+        <PoemObservation
+          poem={jingye}
+          onContinue={() => moveTo(2)}
+          continueLabel="接著看看：所有絕句一定都是五個字為一句嗎？"
+        />
+      </section>
+    );
+  }
+
+  if (stage === 2) {
+    return (
+      <section className="jueju-lesson">
+        <PoemObservation
+          poem={fengqiao}
+          onContinue={() => moveTo(3)}
+          continueLabel="比較兩首作品"
+        />
+      </section>
+    );
+  }
+
+  if (stage === 3) {
+    return (
+      <section className="jueju-lesson comparison-stage">
+        <span className="jueju-section-label">把兩次觀察放在一起</span>
+        <h1>絕句的句數相同，每句字數可以不同</h1>
+        <div className="poem-mini-grid">
+          <PoemMiniCard poem={jingye} />
+          <PoemMiniCard poem={fengqiao} />
+        </div>
+        <div className="first-model">
+          <strong>絕句都是4句</strong>
+          <span>每句5字叫五言絕句</span>
+          <span>每句7字叫七言絕句</span>
+        </div>
+        <Button className="challenge-button" onClick={() => moveTo(4)}>
+          真的嗎！？只要符合以上規則一定就是絕句了嗎！？
+        </Button>
+      </section>
+    );
+  }
+
+  if (stage === 4) {
+    return (
+      <section className="jueju-lesson">
+        <PoemObservation
+          poem={dengguan}
+          onContinue={() => moveTo(5)}
+          continueLabel="比較三首詩的押韻位置"
+          candidateLabel="目前可以判斷：它是五言絕句候選。接著檢查押韻。"
+        />
+      </section>
+    );
+  }
+
+  if (stage === 5) {
+    const discoveryReady =
+      commonPositions.length === 2 &&
+      commonPositions.includes(2) &&
+      commonPositions.includes(4);
+    return (
+      <section className="jueju-lesson rule-discovery-stage">
+        <span className="jueju-section-label">第三次觀察 · 修正原來的想法</span>
+        <h1>三首詩的押韻位置，哪裡一定相同？</h1>
+        <div className="rhyme-comparison-table">
+          <div>
+            <strong>作品</strong>
+            <b>1</b>
+            <b>2</b>
+            <b>3</b>
+            <b>4</b>
+          </div>
+          <div>
+            <strong>靜夜思</strong>
+            <span>✓</span>
+            <span>✓</span>
+            <span>×</span>
+            <span>✓</span>
+          </div>
+          <div>
+            <strong>楓橋夜泊</strong>
+            <span>✓</span>
+            <span>✓</span>
+            <span>×</span>
+            <span>✓</span>
+          </div>
+          <div>
+            <strong>登鸛雀樓</strong>
+            <span>—</span>
+            <span>✓</span>
+            <span>×</span>
+            <span>✓</span>
+          </div>
+        </div>
+        <div className="common-position-picker">
+          {[1, 2, 3, 4].map((position) => (
+            <button
+              type="button"
+              key={position}
+              className={
+                commonPositions.includes(position)
+                  ? position === 2 || position === 4
+                    ? 'correct'
+                    : 'wrong'
+                  : ''
+              }
+              onClick={() =>
+                setCommonPositions((current) =>
+                  current.includes(position)
+                    ? current.filter((item) => item !== position)
+                    : [...current, position],
+                )
+              }
+            >
+              第{position}句
+            </button>
+          ))}
+        </div>
+        {discoveryReady && (
+          <div className="rhyme-rule-reveal">
+            <h2>絕句的押韻規則</h2>
+            <div className="rule-cards">
+              {rhymeRules.map((item) => (
+                <div key={item.position}>
+                  <strong>{item.position}</strong>
+                  <span>{item.rule}</span>
+                </div>
+              ))}
+            </div>
+            <p>偶數句一定押韻，第一句可以押也可以不押。</p>
+            <Button onClick={() => moveTo(6)}>
+              我來完成絕句結構卡 <ArrowRight />
+            </Button>
+          </div>
+        )}
+      </section>
+    );
+  }
+
+  return (
+    <section className="jueju-lesson final-review-stage">
+      <JuejuReview onComplete={() => setReviewComplete(true)} />
+      {reviewComplete && (
+        <div className="completed-structure-card" aria-live="polite">
+          <span>已完成</span>
+          <h1>絕句結構卡</h1>
+          <div className="structure-card-grid">
+            <section>
+              <h2>句數</h2>
+              <strong>4句</strong>
+            </section>
+            <section>
+              <h2>字數</h2>
+              <p>每句5字 → 五言絕句</p>
+              <p>每句7字 → 七言絕句</p>
+            </section>
+            <section>
+              <h2>押韻</h2>
+              {rhymeRules.map((item) => (
+                <p key={item.position}>
+                  {item.position} → {item.rule.replace('韻', '')}
+                </p>
+              ))}
+            </section>
+          </div>
+          <div className="reviewed-poems">
+            {juejuPoems.map((poem) => (
+              <span key={poem.id}>〈{poem.title}〉</span>
+            ))}
+          </div>
+          <h2>絕句的基本結構，你已經找到了！</h2>
+          <Button onClick={next}>
+            進入絕句品管局 <ArrowRight />
+          </Button>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function JuejuQualityPage() {
+  return (
+    <section className="jueju-lesson quality-placeholder">
+      <span className="jueju-section-label">近體詩館 · 第二分頁</span>
+      <h1>《絕句品管局》</h1>
+      <p>第一分頁建立的結構規則，將在這裡成為檢驗作品的工具。</p>
+    </section>
+  );
+}
+
 export default function Home() {
   const [page, setPage] = useState<PageId | null>(null);
   const [highlightedHall, setHighlightedHall] = useState<string | null>(null);
 
   useEffect(() => {
     const route = () => {
-      const match = location.hash.match(
+      const ciMatch = location.hash.match(
         /^#ci\/(origin|create|aliases|types|styles|checkpoint)$/,
       );
-      setPage(match ? (match[1] as PageId) : null);
+      const jintishiMatch = location.hash.match(/^#jintishi\/(jueju|quality)$/);
+      if (ciMatch) setPage(ciMatch[1] as PageId);
+      else if (jintishiMatch)
+        setPage(jintishiMatch[1] === 'quality' ? 'jueju-quality' : 'jueju');
+      else setPage(null);
     };
     route();
     window.addEventListener('hashchange', route);
@@ -2080,7 +2712,9 @@ export default function Home() {
   }, []);
 
   function navigate(next: PageId | null) {
-    location.hash = next ? `ci/${next}` : 'map';
+    if (next === 'jueju') location.hash = 'jintishi/jueju';
+    else if (next === 'jueju-quality') location.hash = 'jintishi/quality';
+    else location.hash = next ? `ci/${next}` : 'map';
     setPage(next);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -2099,6 +2733,10 @@ export default function Home() {
         return <StylesPage next={() => navigate('checkpoint')} />;
       case 'checkpoint':
         return <CheckpointPage />;
+      case 'jueju':
+        return <JuejuPage next={() => navigate('jueju-quality')} />;
+      case 'jueju-quality':
+        return <JuejuQualityPage />;
       default:
         return null;
     }
@@ -2114,7 +2752,13 @@ export default function Home() {
           <Grid2X2 /> 韻文時空館
         </button>
         <span className="header-note">國中國文 · 互動探索</span>
-        <span className="tag">詞館 · 六個分頁</span>
+        <span className="tag">
+          {!page
+            ? '六館導覽'
+            : page === 'jueju' || page === 'jueju-quality'
+              ? '近體詩館 · 絕句'
+              : '詞館 · 六個分頁'}
+        </span>
       </header>
 
       <main id="main-content" className={page ? 'inside-view' : 'home-view'}>
@@ -2124,9 +2768,23 @@ export default function Home() {
               <Button variant="ghost" onClick={() => navigate(null)}>
                 <ArrowLeft /> 回時間圖
               </Button>
-              <TimelineRail />
-              <nav className="page-nav" aria-label="詞館頁面">
-                {PAGES.map((item) => (
+              <TimelineRail
+                currentHall={
+                  page === 'jueju' || page === 'jueju-quality' ? '近體詩' : '詞'
+                }
+              />
+              <nav
+                className="page-nav"
+                aria-label={
+                  page === 'jueju' || page === 'jueju-quality'
+                    ? '近體詩館頁面'
+                    : '詞館頁面'
+                }
+              >
+                {(page === 'jueju' || page === 'jueju-quality'
+                  ? JINTISHI_PAGES
+                  : PAGES
+                ).map((item) => (
                   <button
                     key={item.id}
                     className={page === item.id ? 'current' : ''}
@@ -2148,7 +2806,9 @@ export default function Home() {
                 <h1 aria-live="polite">
                   {highlightedHall === '詞'
                     ? '走進詞的誕生現場'
-                    : '沿著時間軸，搭上時光機吧！'}
+                    : highlightedHall === '近體詩'
+                      ? '去一睹唐代詩人的風采吧！'
+                      : '沿著時間軸，搭上時光機吧！'}
                 </h1>
               </div>
             </header>
@@ -2161,17 +2821,17 @@ export default function Home() {
                       <h2>{hall.name}</h2>
                       <ShapeGlyph shape={hall.shape} />
                       <p>{hall.note}</p>
-                      {hall.name === '詞' ? (
+                      {hall.name === '詞' || hall.name === '近體詩' ? (
                         <button
                           className="enter-cta"
                           onFocus={() => setHighlightedHall(hall.name)}
                           onBlur={() => setHighlightedHall(null)}
                           onClick={(event) => {
                             event.stopPropagation();
-                            navigate('origin');
+                            navigate(hall.name === '詞' ? 'origin' : 'jueju');
                           }}
                         >
-                          進入詞館 <ArrowRight />
+                          進入{hall.name}館 <ArrowRight />
                         </button>
                       ) : (
                         <span className="soon">後續開放</span>
@@ -2187,7 +2847,7 @@ export default function Home() {
                       <span className="time-dot">
                         <i />
                       </span>
-                      {hall.name === '詞' ? (
+                      {hall.name === '詞' || hall.name === '近體詩' ? (
                         <div
                           className="hall-card interactive-hall"
                           onPointerEnter={() => setHighlightedHall(hall.name)}

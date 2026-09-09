@@ -11,7 +11,7 @@
     "start": "vinext preview --host 0.0.0.0 --port 4173",
     "lint": "oxlint app lib data db tests",
     "format": "oxfmt",
-    "test": "node --experimental-strip-types --test tests/ci-workshop.test.ts",
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
     "typecheck": "tsc --noEmit",
     "dev:pages": "vite --config vite.pages.config.ts",
     "build:pages": "vite build --config vite.pages.config.ts",

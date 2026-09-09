@@ -3099,3 +3099,637 @@ button[data-slot='button'] {
     font-size: 0.58rem;
   }
 }
+
+/* 近體詩館：絕句概念建立 */
+.jueju-lesson {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  padding: clamp(24px, 4.5vw, 56px);
+  border: 1px solid #b9cbd2;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 90% 8%, rgb(242 155 91 / 16%), transparent 30%),
+    linear-gradient(145deg, #fbfdfe, #edf4f6);
+  box-shadow: 0 22px 65px rgb(21 59 75 / 12%);
+}
+.jueju-section-label {
+  display: block;
+  margin-bottom: 10px;
+  color: #9a542d;
+  font-size: 0.84rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+}
+.structure-opening {
+  text-align: center;
+  transition: 0.3s ease;
+}
+.structure-opening.leaving {
+  opacity: 0;
+  transform: scale(0.98);
+}
+.car-structure-card {
+  position: relative;
+  width: min(780px, 100%);
+  margin: 24px auto;
+  overflow: hidden;
+  border: 1px solid #76919b;
+  border-radius: 24px;
+  background: #132c36;
+  box-shadow: 0 18px 38px rgb(16 40 50 / 18%);
+}
+.car-structure-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.car-label {
+  position: absolute;
+  padding: 5px 13px;
+  border: 2px solid #f5b36d;
+  border-radius: 99px;
+  background: rgb(251 253 254 / 94%);
+  color: #6e351f;
+  font-weight: 900;
+  box-shadow: 0 5px 16px rgb(0 0 0 / 22%);
+}
+.body-label {
+  top: 10%;
+  left: 52%;
+}
+.door-label {
+  top: 46%;
+  right: 6%;
+}
+.wheel-label {
+  right: 12%;
+  bottom: 11%;
+}
+.seat-label {
+  top: 39%;
+  left: 53%;
+}
+.structure-definition {
+  max-width: 760px;
+  margin: 22px auto;
+  color: #1d4653;
+  font-size: clamp(1.12rem, 2.2vw, 1.48rem);
+  font-weight: 850;
+}
+.poem-entry-question {
+  margin-bottom: 26px;
+  color: #173d4b;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  font-weight: 900;
+  text-align: center;
+}
+.poem-observation {
+  display: grid;
+  gap: 24px;
+}
+.poem-title-row {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #b6c8ce;
+}
+.poem-title-row span {
+  color: #607a84;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+.poem-title-row h2 {
+  margin: 3px 0 0;
+  color: #173d4b;
+  font-size: clamp(2rem, 4vw, 3.35rem);
+}
+.poem-title-row > strong {
+  color: #8d4c2b;
+  font-size: 1.3rem;
+}
+.poem-lines {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.poem-lines button {
+  position: relative;
+  min-height: 92px;
+  padding: 17px 72px 17px 22px;
+  border: 2px solid #afc2c8;
+  border-radius: 16px;
+  background: #fff;
+  color: #203f49;
+  font-size: clamp(1.35rem, 2.6vw, 1.9rem);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-align: left;
+  transition: 0.2s ease;
+}
+.poem-lines button:hover,
+.poem-lines button:focus-visible {
+  border-color: #4e7b87;
+}
+.poem-lines button b {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.4em;
+  border-radius: 50%;
+  transition: 0.2s ease;
+}
+.poem-lines button b.ending-revealed {
+  color: #9a4528;
+  font-size: 1.35em;
+  text-shadow: 0 0 16px #f7bd69;
+  transform: scale(1.12);
+}
+.poem-lines button small {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  color: #8c4b2d;
+  font-size: 0.85rem;
+  letter-spacing: 0;
+  transform: translateY(-50%);
+}
+.poem-lines button.rhyme-selected {
+  border-color: #23806f;
+  background: #dff2eb;
+  box-shadow: inset 6px 0 #23806f;
+}
+.poem-lines button.rhyme-wrong {
+  animation: rhyme-nudge 0.28s ease;
+}
+.poem-questions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(230px, 1fr));
+  gap: 14px;
+}
+.wheel-question,
+.rhyme-prompt {
+  display: flex;
+  min-height: 184px;
+  padding: 14px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid #b8c9ce;
+  border-radius: 18px;
+  background: rgb(255 255 255 / 78%);
+}
+.wheel-question p {
+  margin: 0;
+  color: #244955;
+  font-size: 1.08rem;
+  font-weight: 850;
+}
+.number-wheel {
+  position: relative;
+  width: 86px;
+  display: grid;
+  justify-items: center;
+}
+.number-wheel > button {
+  display: grid;
+  width: 42px;
+  height: 30px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: #436874;
+}
+.number-wheel > button svg {
+  width: 22px;
+}
+.wheel-window {
+  width: 76px;
+  height: 108px;
+  display: grid;
+  grid-template-rows: 1fr 1.4fr 1fr;
+  place-items: center;
+  overflow: hidden;
+  border: 2px solid #7e969f;
+  border-radius: 14px;
+  background: linear-gradient(#e8eef0, #fff 32% 68%, #e8eef0);
+  touch-action: none;
+  user-select: none;
+}
+.wheel-window span {
+  color: #82959b;
+  font-size: 0.9rem;
+}
+.wheel-window strong {
+  width: 100%;
+  border-block: 1px solid #bdcbd0;
+  color: #173d4b;
+  font-size: 2rem;
+  line-height: 1.45;
+}
+.number-wheel > i {
+  position: absolute;
+  right: -10px;
+  top: 68px;
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  border-radius: 50%;
+  background: transparent;
+  color: transparent;
+  font-style: normal;
+  font-weight: 950;
+}
+.number-wheel.locked .wheel-window {
+  border-color: #23806f;
+  box-shadow: 0 0 0 5px rgb(35 128 111 / 12%);
+  animation: wheel-lock 0.25s ease;
+}
+.number-wheel.locked > i {
+  background: #23806f;
+  color: white;
+}
+.rhyme-prompt {
+  grid-column: 1 / -1;
+  min-height: auto;
+  flex-direction: column;
+  background: #173d4b;
+  color: white;
+  text-align: center;
+}
+.rhyme-prompt strong {
+  font-size: 1.25rem;
+}
+.rhyme-prompt span {
+  color: #c9dce1;
+}
+.jueju-reveal {
+  padding: 24px;
+  border: 2px solid #338476;
+  border-radius: 22px;
+  background: linear-gradient(140deg, #e4f4ec, #fffdf6);
+  text-align: center;
+  animation: reveal-rise 0.35s ease both;
+}
+.observation-results,
+.naming-morph {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.observation-results span {
+  padding: 8px 14px;
+  border-radius: 99px;
+  background: white;
+  color: #31535d;
+}
+.naming-morph {
+  margin: 18px 0;
+}
+.naming-morph span {
+  display: flex;
+  min-width: 245px;
+  padding: 13px 18px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 14px;
+  background: #173d4b;
+  color: white;
+}
+.naming-morph b {
+  color: var(--lime);
+  font-size: 1.3rem;
+}
+.jueju-reveal h3 {
+  color: #205f54;
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+}
+.jueju-reveal button {
+  max-width: 680px;
+}
+.poem-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.poem-mini-card {
+  display: grid;
+  padding: 24px;
+  gap: 8px;
+  border: 2px solid #afc3c9;
+  border-radius: 20px;
+  background: #fff;
+  text-align: center;
+}
+.poem-mini-card h3 {
+  margin: 0;
+  color: #173d4b;
+  font-size: 1.55rem;
+}
+.poem-mini-card span {
+  color: #6b7d83;
+}
+.poem-mini-card > b {
+  color: #9a542d;
+  font-size: 1.3rem;
+}
+.first-model {
+  display: flex;
+  margin: 22px 0;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.first-model > * {
+  padding: 10px 15px;
+  border-radius: 99px;
+  background: #e0ecef;
+  color: #244955;
+}
+.challenge-button {
+  display: flex;
+  width: min(720px, 100%);
+  margin: 20px auto 0;
+  background: #a94f2f !important;
+  font-size: 1.1rem !important;
+}
+.candidate-banner {
+  margin-bottom: 18px;
+  padding: 11px 16px;
+  border-left: 6px solid #d98445;
+  border-radius: 10px;
+  background: #fff1df;
+  color: #7b3c24;
+  font-weight: 850;
+}
+.rhyme-comparison-table {
+  display: grid;
+  gap: 7px;
+  margin: 25px 0;
+}
+.rhyme-comparison-table > div {
+  display: grid;
+  grid-template-columns: minmax(110px, 1.5fr) repeat(4, 1fr);
+  gap: 7px;
+}
+.rhyme-comparison-table strong,
+.rhyme-comparison-table span,
+.rhyme-comparison-table b {
+  display: grid;
+  min-height: 50px;
+  padding: 8px;
+  place-items: center;
+  border-radius: 10px;
+  background: white;
+  color: #264c58;
+}
+.rhyme-comparison-table > div:first-child > * {
+  background: #173d4b;
+  color: white;
+}
+.common-position-picker,
+.character-choice-grid,
+.rule-label-bank,
+.rule-position-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.common-position-picker button,
+.character-choice-grid button,
+.rule-label-bank button,
+.rule-position-grid button {
+  min-height: 58px;
+  border: 2px solid #9eb4bc;
+  border-radius: 14px;
+  background: white;
+  color: #294c57;
+  font-weight: 850;
+}
+.common-position-picker button.correct,
+.character-choice-grid button.correct,
+.rule-position-grid button.correct {
+  border-color: #23806f;
+  background: #dff2eb;
+  color: #205f54;
+}
+.common-position-picker button.wrong,
+.character-choice-grid button.wrong,
+.rule-position-grid button.wrong {
+  border-color: #bd7255;
+  background: #f8e2d8;
+  color: #873e28;
+}
+.rhyme-rule-reveal {
+  margin-top: 25px;
+  padding: 25px;
+  border-radius: 22px;
+  background: #173d4b;
+  color: white;
+  text-align: center;
+  animation: reveal-rise 0.35s ease both;
+}
+.rule-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+.rule-cards > div {
+  display: grid;
+  padding: 13px 8px;
+  gap: 5px;
+  border-radius: 12px;
+  background: #f5fafb;
+  color: #234a55;
+}
+.rhyme-rule-reveal > p {
+  margin: 20px 0;
+  color: var(--lime);
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+.jueju-review {
+  display: grid;
+  gap: 18px;
+}
+.review-step {
+  padding: 20px;
+  border: 1px solid #afc1c7;
+  border-radius: 18px;
+  background: rgb(255 255 255 / 75%);
+}
+.review-step h3 {
+  color: #234a55;
+}
+.compact-wheel-question {
+  width: min(420px, 100%);
+  min-height: 170px;
+}
+.character-morph {
+  display: flex;
+  margin-top: 14px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.character-morph span {
+  display: flex;
+  padding: 9px 14px;
+  align-items: center;
+  gap: 9px;
+  border-radius: 12px;
+  background: #dff2eb;
+  color: #205f54;
+  font-weight: 850;
+}
+.rule-label-bank {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 12px;
+}
+.rule-label-bank button.selected {
+  border-color: #d98445;
+  background: #fff0df;
+  box-shadow: 0 0 0 4px rgb(217 132 69 / 13%);
+}
+.rule-position-grid button {
+  display: grid;
+  padding: 10px;
+  gap: 4px;
+}
+.completed-structure-card {
+  margin-top: 26px;
+  padding: clamp(24px, 5vw, 48px);
+  border: 4px solid #d7f574;
+  border-radius: 26px;
+  background: #173d4b;
+  color: white;
+  text-align: center;
+  box-shadow:
+    0 0 0 8px #315866,
+    0 22px 50px rgb(18 52 64 / 24%);
+  animation: structure-card-complete 0.5s ease both;
+}
+.completed-structure-card > span {
+  color: var(--lime);
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+.completed-structure-card h1 {
+  color: white;
+}
+.structure-card-grid {
+  display: grid;
+  grid-template-columns: 0.65fr 1fr 1.25fr;
+  gap: 12px;
+  text-align: left;
+}
+.structure-card-grid section {
+  padding: 17px;
+  border-radius: 15px;
+  background: #f7fbfc;
+  color: #173d4b;
+}
+.structure-card-grid h2 {
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+.structure-card-grid strong {
+  font-size: 2.1rem;
+}
+.structure-card-grid p {
+  margin-bottom: 4px;
+  font-weight: 750;
+}
+.reviewed-poems {
+  display: flex;
+  margin: 18px 0;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.reviewed-poems span {
+  padding: 6px 12px;
+  border: 1px solid #7897a4;
+  border-radius: 99px;
+}
+.quality-placeholder {
+  min-height: 520px;
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+@keyframes rhyme-nudge {
+  35% {
+    transform: translateX(-5px);
+  }
+  70% {
+    transform: translateX(5px);
+  }
+}
+@keyframes wheel-lock {
+  50% {
+    transform: scale(1.08);
+  }
+}
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+@keyframes structure-card-complete {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@media (max-width: 760px) {
+  .jueju-lesson {
+    padding: 20px 13px;
+    border-radius: 18px;
+  }
+  .car-label {
+    padding: 3px 8px;
+    font-size: 0.72rem;
+  }
+  .poem-lines {
+    grid-template-columns: 1fr;
+  }
+  .poem-lines button {
+    min-height: 72px;
+    padding: 12px 66px 12px 15px;
+    font-size: 1.25rem;
+  }
+  .poem-questions,
+  .poem-mini-grid,
+  .structure-card-grid {
+    grid-template-columns: 1fr;
+  }
+  .wheel-question {
+    min-height: 160px;
+  }
+  .common-position-picker,
+  .rule-position-grid,
+  .rule-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .rule-label-bank {
+    grid-template-columns: 1fr;
+  }
+  .rhyme-comparison-table > div {
+    grid-template-columns: minmax(86px, 1.3fr) repeat(4, 1fr);
+    gap: 4px;
+  }
+  .rhyme-comparison-table strong,
+  .rhyme-comparison-table span,
+  .rhyme-comparison-table b {
+    min-height: 42px;
+    padding: 4px;
+    font-size: 0.8rem;
+  }
+}

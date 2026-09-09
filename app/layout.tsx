@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
 export const metadata: Metadata = {
-  title: '韻文時空館｜詞館互動學習',
-  description:
-    '沿著時間理解詞的由來、詞牌、別稱、類別與風格，再完成自己的填詞作品。',
+  title: '韻文時空館｜國中國文互動學習',
+  description: '沿著韻文時間軸，以觀察、操作與比較理解近體詩、詞等古典韻文。',
 };
 export default function RootLayout({
   children,
