@@ -1016,7 +1016,8 @@ button[data-slot='button'] {
   background: #fffdf7;
 }
 .staff-line,
-.measure-line {
+.measure-line,
+.ledger-line {
   stroke: #443f37;
   stroke-width: 1.8;
 }
@@ -1028,22 +1029,21 @@ button[data-slot='button'] {
   font-family: serif;
   font-size: 48px;
 }
-.pitch-guide {
-  fill: none;
-  stroke: #15947f;
-  stroke-width: 6;
-  stroke-linecap: round;
-  opacity: 0.56;
-  stroke-dasharray: 1300;
-  stroke-dashoffset: 1300;
-  animation: pitch-line-draw 1.25s 0.3s ease-out forwards;
-}
 .score-note {
   fill: #302d29;
   stroke: #302d29;
   stroke-width: 3;
   opacity: 0;
   animation: score-note-in 0.22s ease-out forwards;
+}
+.score-note.note-half .note-head {
+  fill: #fffdf7;
+  stroke-width: 3.5;
+}
+.note-flag {
+  fill: none;
+  stroke-linecap: round;
+  stroke-width: 4;
 }
 .lyric-cell {
   fill: #f5eddd;
@@ -1081,11 +1081,11 @@ button[data-slot='button'] {
   background: #302d29;
   transform: rotate(-15deg);
 }
-.curve-line {
-  width: 25px;
-  height: 9px;
-  border-top: 4px solid #15947f;
-  border-radius: 50%;
+.rhythm-notes {
+  color: #302d29;
+  font-family: serif;
+  font-size: 18px;
+  letter-spacing: 2px;
 }
 .word-box {
   width: 18px;
@@ -1214,11 +1214,6 @@ button[data-slot='button'] {
     box-shadow:
       0 0 0 7px #cce5c8,
       0 0 28px #91c69c;
-  }
-}
-@keyframes pitch-line-draw {
-  to {
-    stroke-dashoffset: 0;
   }
 }
 @keyframes score-note-in {
@@ -2467,9 +2462,6 @@ button[data-slot='button'] {
   .lyric-character,
   .work-switchers {
     opacity: 1 !important;
-  }
-  .pitch-guide {
-    stroke-dashoffset: 0 !important;
   }
 }
 

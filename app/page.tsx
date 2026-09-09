@@ -166,18 +166,26 @@ const staffSystems = [
 ];
 
 const melodyPitches = [
-  4, 5, 6, 7, 6, 5, 4, 3, 4, 5, 4, 3, 4, 5, 6, 7, 8, 7, 6, 5, 6, 7, 6, 5, 4, 3,
-  4, 5, 5, 6, 7, 8, 7, 6, 5, 4, 5, 6, 5, 4, 5, 6, 7, 8, 7, 6, 5, 4, 5, 6, 7, 6,
-  5, 4, 3, 4,
+  2, 4, 7, 9, 6, 3, 1, 5, 8, 10, 6, 2, 3, 7, 10, 8, 4, 1, 5, 9, 6, 2, 0, 4, 8,
+  5, 3, 7, 1, 5, 9, 10, 6, 2, 4, 8, 5, 1, 6, 3, 8, 10, 7, 2, 0, 4, 9, 6, 3, 7,
+  10, 8, 4, 1, 5, 2,
 ];
 
-function curvedPitchPath(points: { x: number; y: number }[]) {
-  return points.slice(1).reduce((path, point, index) => {
-    const previous = points[index];
-    const middle = (previous.x + point.x) / 2;
-    return `${path} C ${middle} ${previous.y}, ${middle} ${point.y}, ${point.x} ${point.y}`;
-  }, `M ${points[0].x} ${points[0].y}`);
-}
+type NoteDuration = 'eighth' | 'quarter' | 'half';
+const durationPattern: NoteDuration[] = [
+  'quarter',
+  'eighth',
+  'eighth',
+  'half',
+  'quarter',
+  'quarter',
+  'eighth',
+  'eighth',
+];
+const melodyDurations = Array.from(
+  { length: melodyPitches.length },
+  (_, index) => durationPattern[index % durationPattern.length],
+);
 
 function YuMeiRenScore({ work }: { work: (typeof yuMeiRenWorks)[number] }) {
   const characters = work.lines.join('').split('');
@@ -215,7 +223,6 @@ function YuMeiRenScore({ work }: { work: (typeof yuMeiRenWorks)[number] }) {
               <text className="treble-clef" x="49" y={baseY + 36}>
                 𝄞
               </text>
-              <path className="pitch-guide" d={curvedPitchPath(points)} />
               <line
                 className="measure-line"
                 x1={92 + (system.split - 0.5) * step}
@@ -223,39 +230,63 @@ function YuMeiRenScore({ work }: { work: (typeof yuMeiRenWorks)[number] }) {
                 y1={baseY}
                 y2={baseY + 40}
               />
-              {points.map((point) => (
-                <g key={point.index}>
-                  <g
-                    className="score-note"
-                    style={{ animationDelay: `${point.index * 45}ms` }}
-                  >
-                    <ellipse cx={point.x} cy={point.y} rx="8" ry="6" />
-                    <line
-                      x1={point.x + 7}
-                      x2={point.x + 7}
-                      y1={point.y}
-                      y2={point.y - 27}
+              {points.map((point) => {
+                const duration = melodyDurations[point.index];
+                return (
+                  <g key={point.index}>
+                    {melodyPitches[point.index] === 10 && (
+                      <line
+                        className="ledger-line"
+                        x1={point.x - 12}
+                        x2={point.x + 12}
+                        y1={baseY - 10}
+                        y2={baseY - 10}
+                      />
+                    )}
+                    <g
+                      className={`score-note note-${duration}`}
+                      style={{ animationDelay: `${point.index * 45}ms` }}
+                    >
+                      <ellipse
+                        className="note-head"
+                        cx={point.x}
+                        cy={point.y}
+                        rx="8"
+                        ry="6"
+                      />
+                      <line
+                        x1={point.x + 7}
+                        x2={point.x + 7}
+                        y1={point.y}
+                        y2={point.y - 27}
+                      />
+                      {duration === 'eighth' && (
+                        <path
+                          className="note-flag"
+                          d={`M ${point.x + 7} ${point.y - 27} Q ${point.x + 24} ${point.y - 19}, ${point.x + 17} ${point.y - 8}`}
+                        />
+                      )}
+                    </g>
+                    <rect
+                      className="lyric-cell"
+                      x={point.x - 16}
+                      y={baseY + 57}
+                      width="32"
+                      height="34"
+                      rx="4"
                     />
+                    <text
+                      key={`${work.id}-${point.index}`}
+                      className="lyric-character"
+                      x={point.x}
+                      y={baseY + 81}
+                      style={{ animationDelay: `${1100 + point.index * 55}ms` }}
+                    >
+                      {characters[point.index]}
+                    </text>
                   </g>
-                  <rect
-                    className="lyric-cell"
-                    x={point.x - 16}
-                    y={baseY + 57}
-                    width="32"
-                    height="34"
-                    rx="4"
-                  />
-                  <text
-                    key={`${work.id}-${point.index}`}
-                    className="lyric-character"
-                    x={point.x}
-                    y={baseY + 81}
-                    style={{ animationDelay: `${1100 + point.index * 55}ms` }}
-                  >
-                    {characters[point.index]}
-                  </text>
-                </g>
-              ))}
+                );
+              })}
             </g>
           );
         })}
@@ -1850,7 +1881,7 @@ function CreatePage() {
         <span className="act-number">第一步 · 跟著旋律填字</span>
         <h2>一個音，接住一個字</h2>
         <p className="score-intro">
-          五線譜顯示音高；綠色曲線把高低連起來。每顆音下方都有一格，歌詞會逐字填入。
+          五線譜上的音符有高有低，也有不同的長短。每顆音下方都有一格，歌詞會逐字填入。
         </p>
         <div className="score-card">
           <header>
@@ -1871,10 +1902,13 @@ function CreatePage() {
           <YuMeiRenScore work={selectedWork} />
           <div className="score-legend">
             <span>
-              <i className="note-dot" /> 五線譜上的音
+              <i className="note-dot" /> 音符的位置表示音高
             </span>
             <span>
-              <i className="curve-line" /> 看得懂的音高曲線
+              <b className="rhythm-notes" aria-hidden="true">
+                ♪ ♩ 𝅗𝅥
+              </b>{' '}
+              不同音符表示長短不同
             </span>
             <span>
               <i className="word-box" /> 一音一字的歌詞格
