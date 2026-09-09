@@ -53,7 +53,7 @@ const PAGES: { id: PageId; label: string; title: string }[] = [
   { id: 'aliases', label: '03 詞的別稱', title: '把別稱和由來連起來' },
   { id: 'types', label: '04 詞的類別', title: '用字數判斷小令、中調、長調' },
   { id: 'styles', label: '05 詞的風格', title: '婉約與豪放，各有什麼氣質？' },
-  { id: 'checkpoint', label: '06 詞學闖關帖', title: '把學到的詞學知識帶走' },
+  { id: 'checkpoint', label: '06 詞學闖關戰', title: '把學到的詞學知識帶走' },
 ];
 
 function randomIndex(length: number) {
@@ -1049,7 +1049,7 @@ const aliasPairs = [
   { alias: '長短句', origin: '句子大多長短不齊。' },
 ];
 
-function AliasesPage() {
+function AliasesPage({ next }: { next: () => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [matches, setMatches] = useState<Record<string, string>>({});
 
@@ -1116,6 +1116,11 @@ function AliasesPage() {
           <RotateCcw /> 重新配對
         </Button>
       </div>
+      {correct === aliasPairs.length && (
+        <Button className="page-advance" onClick={next}>
+          下一站：詞的類別 <ArrowRight />
+        </Button>
+      )}
     </section>
   );
 }
@@ -1182,11 +1187,15 @@ function categoryFor(count: number): CiCategory {
   return '長調';
 }
 
-function TypesPage() {
+function TypesPage({ next }: { next: () => void }) {
   const [marker, setMarker] = useState(56);
   const [openWork, setOpenWork] = useState<string | null>('yumeiren');
   const [answers, setAnswers] = useState<Record<string, CiCategory>>({});
   const markerCategory = categoryFor(marker);
+  const correctAnswers = categoryWorks.filter((work) => {
+    const count = countWritingCharacters(work.lines.join(''));
+    return answers[work.id] === categoryFor(count);
+  }).length;
 
   return (
     <section className="lesson knowledge-page" aria-labelledby="types-title">
@@ -1282,6 +1291,11 @@ function TypesPage() {
           );
         })}
       </div>
+      {correctAnswers === categoryWorks.length && (
+        <Button className="page-advance" onClick={next}>
+          下一站：詞的風格 <ArrowRight />
+        </Button>
+      )}
     </section>
   );
 }
@@ -1309,8 +1323,11 @@ const stylePractice = [
   },
 ] as const;
 
-function StylesPage() {
+function StylesPage({ next }: { next: () => void }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const correctAnswers = stylePractice.filter(
+    (item) => answers[item.title] === item.answer,
+  ).length;
   return (
     <section className="lesson knowledge-page" aria-labelledby="styles-title">
       <header className="lesson-heading compact-heading">
@@ -1378,22 +1395,74 @@ function StylesPage() {
           );
         })}
       </div>
+      {correctAnswers === stylePractice.length && (
+        <Button className="page-advance" onClick={next}>
+          下一站：詞學闖關戰 <ArrowRight />
+        </Button>
+      )}
     </section>
   );
 }
 
 function CheckpointPage() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [fill, setFill] = useState('');
-  const keys = {
-    time: '晚唐五代',
-    type: '小令',
-    style: '豪放派',
-    alias: '長短句',
-  };
+  const [keywords, setKeywords] = useState<string[]>([]);
+  const [keywordsChecked, setKeywordsChecked] = useState(false);
+  const [certificate, setCertificate] = useState(false);
+  const keywordGroups = [
+    { label: '時代', options: ['秦代', '漢代', '宋代', '元代'] },
+    {
+      label: '人物',
+      options: ['蘇軾', '李白', '李煜', '李清照', '辛棄疾', '蘇秦'],
+    },
+    {
+      label: '別稱',
+      options: [
+        '詩餘',
+        '詞餘',
+        '曲子詞',
+        '歌詞',
+        '長短句',
+        '長短腳',
+        '樂府',
+        '官府詞',
+      ],
+    },
+  ];
+  const correctKeywords = [
+    '宋代',
+    '蘇軾',
+    '李煜',
+    '李清照',
+    '辛棄疾',
+    '詩餘',
+    '曲子詞',
+    '長短句',
+    '樂府',
+  ];
+  const keywordCorrect =
+    keywords.length === correctKeywords.length &&
+    correctKeywords.every((keyword) => keywords.includes(keyword));
   const score =
-    Object.entries(keys).filter(([key, value]) => answers[key] === value)
-      .length + (fill.trim() === '詞牌' ? 1 : 0);
+    (keywordCorrect ? 1 : 0) +
+    (answers.content === '題目' ? 1 : 0) +
+    (answers.format === '詞牌' ? 1 : 0) +
+    (answers.category === '中調' ? 1 : 0) +
+    (answers.graceful === '婉約派' && answers.bold === '豪放派' ? 1 : 0);
+
+  function choose(key: string, value: string) {
+    setAnswers((current) => ({ ...current, [key]: value }));
+  }
+
+  function toggleKeyword(keyword: string) {
+    setKeywordsChecked(false);
+    setKeywords((current) =>
+      current.includes(keyword)
+        ? current.filter((item) => item !== keyword)
+        : [...current, keyword],
+    );
+  }
+
   return (
     <section
       className="lesson knowledge-page checkpoint-page"
@@ -1401,8 +1470,8 @@ function CheckpointPage() {
     >
       <header className="lesson-heading compact-heading">
         <p className="eyebrow">第六分頁 · 階段評量</p>
-        <h1 id="checkpoint-title">詞學通關帖</h1>
-        <p>完成五道不同任務，看看你是否能帶著詞牌走進汴京城。</p>
+        <h1 id="checkpoint-title">詞學闖關戰</h1>
+        <p>完成五道任務，把詞的時代、人物、規則、類別與風格串起來。</p>
       </header>
       <div className="checkpoint-score">
         <strong>{score}／5</strong>
@@ -1411,132 +1480,248 @@ function CheckpointPage() {
         </span>
       </div>
       <div className="quiz-stack">
-        <QuizChoice
-          number="一"
-          question="詞在哪一個時期逐漸成熟？"
-          options={['唐代初期', '晚唐五代', '兩宋']}
-          answer={answers.time}
-          correct="晚唐五代"
-          choose={(value) =>
-            setAnswers((current) => ({ ...current, time: value }))
-          }
-        />
-        <QuizChoice
-          number="二"
-          question="56 字的〈虞美人〉屬於哪一類？"
-          options={['小令', '中調', '長調']}
-          answer={answers.type}
-          correct="小令"
-          choose={(value) =>
-            setAnswers((current) => ({ ...current, type: value }))
-          }
-        />
-        <article className="quiz-card">
-          <span>三・填空</span>
-          <h2>決定一闋詞句數、字數與聲律的模具叫做：</h2>
-          <input
-            value={fill}
-            onChange={(event) => setFill(event.target.value)}
-            placeholder="請填兩個字"
-          />
-          <small>
-            {fill &&
-              (fill.trim() === '詞牌' ? '答對了！' : '再想想第二分頁的模具。')}
-          </small>
+        <article className="quiz-card keyword-battle">
+          <span>第一關・點出所有關鍵字</span>
+          <h2>哪些時代、人物與別稱和「詞」有關？</h2>
+          {keywordGroups.map((group) => (
+            <fieldset key={group.label}>
+              <legend>{group.label}</legend>
+              <div>
+                {group.options.map((keyword) => {
+                  const selected = keywords.includes(keyword);
+                  const shouldSelect = correctKeywords.includes(keyword);
+                  const checkedClass = keywordsChecked
+                    ? selected
+                      ? shouldSelect
+                        ? 'correct'
+                        : 'wrong'
+                      : shouldSelect
+                        ? 'missing'
+                        : ''
+                    : '';
+                  return (
+                    <button
+                      key={keyword}
+                      className={`${selected ? 'selected' : ''} ${checkedClass}`}
+                      onClick={() => toggleKeyword(keyword)}
+                    >
+                      {keyword}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+          ))}
+          <Button variant="outline" onClick={() => setKeywordsChecked(true)}>
+            <Check /> 檢查關鍵字
+          </Button>
+          {keywordsChecked && (
+            <small>
+              {keywordCorrect
+                ? '全部找到了！'
+                : '綠色正確、紅色誤選；虛線框是漏掉的關鍵字。'}
+            </small>
+          )}
         </article>
-        <QuizChoice
-          number="四"
-          question="「會挽雕弓如滿月」較接近哪種風格？"
-          options={['婉約派', '豪放派']}
-          answer={answers.style}
-          correct="豪放派"
-          choose={(value) =>
-            setAnswers((current) => ({ ...current, style: value }))
-          }
-        />
-        <article className="quiz-card checkpoint-drag">
-          <span>五・拖曳配對</span>
-          <h2>把正確的詞之別稱拖到由來旁邊。</h2>
+
+        <article className="quiz-card">
+          <span>第二關・詞牌還是題目？</span>
+          <h2>跟一闋詞所寫的內容有關係的是哪一個？</h2>
           <div>
-            {['樂府', '詩餘', '長短句'].map((alias) => (
+            {['詞牌', '題目'].map((option) => (
               <button
-                draggable
-                key={alias}
-                onDragStart={(event) =>
-                  event.dataTransfer.setData('text/plain', alias)
+                key={option}
+                className={
+                  answers.content === option
+                    ? option === '題目'
+                      ? 'correct'
+                      : 'wrong'
+                    : ''
                 }
-                onClick={() => setAnswers((current) => ({ ...current, alias }))}
+                onClick={() => choose('content', option)}
               >
-                {alias}
+                {option}
               </button>
             ))}
           </div>
-          <button
-            className={`checkpoint-drop ${answers.alias ? (answers.alias === '長短句' ? 'correct' : 'wrong') : ''}`}
-            onDragOver={(event) => event.preventDefault()}
-            onDrop={(event) =>
-              setAnswers((current) => ({
-                ...current,
-                alias: event.dataTransfer.getData('text/plain'),
-              }))
-            }
-          >
-            <strong>{answers.alias ?? '拖到這裡'}</strong>
-            <span>句子大多長短不齊。</span>
-          </button>
-          {answers.alias && (
+          {answers.content && (
             <small>
-              {answers.alias === '長短句' ? '配對正確！' : '再換一張別稱。'}
+              {answers.content === '題目'
+                ? '答對了！題目說明這闋詞在寫什麼。'
+                : '詞牌通常不等於內容，再想想。'}
+            </small>
+          )}
+        </article>
+
+        <article className="quiz-card">
+          <span>第三關・詞牌還是題目？</span>
+          <h2>哪一個決定了一闋詞的句數、字數與格式？</h2>
+          <div>
+            {['詞牌', '題目'].map((option) => (
+              <button
+                key={option}
+                className={
+                  answers.format === option
+                    ? option === '詞牌'
+                      ? 'correct'
+                      : 'wrong'
+                    : ''
+                }
+                onClick={() => choose('format', option)}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+          {answers.format && (
+            <small>
+              {answers.format === '詞牌'
+                ? '答對了！詞牌就是填詞模具。'
+                : '題目只告訴我們內容。'}
+            </small>
+          )}
+        </article>
+
+        <article className="quiz-card unseen-work">
+          <span>第四關・自己數字數</span>
+          <h2>辛棄疾〈青玉案・元夕〉是小令、中調還是長調？</h2>
+          <div className="assessment-poem">
+            <p>
+              東風夜放花千樹。更吹落、星如雨。寶馬雕車香滿路。鳳簫聲動，玉壺光轉，一夜魚龍舞。
+            </p>
+            <p>
+              蛾兒雪柳黃金縷。笑語盈盈暗香去。眾裡尋他千百度。驀然回首，那人卻在，燈火闌珊處。
+            </p>
+          </div>
+          <p className="count-yourself">這一關不提示字數，請自己數一數。</p>
+          <div>
+            {(['小令', '中調', '長調'] as CiCategory[]).map((option) => (
+              <button
+                key={option}
+                className={
+                  answers.category === option
+                    ? option === '中調'
+                      ? 'correct'
+                      : 'wrong'
+                    : ''
+                }
+                onClick={() => choose('category', option)}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+          {answers.category && (
+            <small>
+              {answers.category === '中調'
+                ? '答對了！'
+                : '請忽略標點，再逐字數一次。'}
+            </small>
+          )}
+        </article>
+
+        <article className="quiz-card style-duel">
+          <span>第五關・婉約與豪放對決</span>
+          <h2>判斷兩闋新作品各是哪一種風格。</h2>
+          <div className="duel-grid">
+            <section>
+              <h3>甲・秦觀〈鵲橋仙〉</h3>
+              <p>
+                纖雲弄巧，飛星傳恨，銀漢迢迢暗度。金風玉露一相逢，便勝卻人間無數。
+              </p>
+              <p>
+                柔情似水，佳期如夢，忍顧鵲橋歸路。兩情若是久長時，又豈在朝朝暮暮。
+              </p>
+              <div>
+                {['婉約派', '豪放派'].map((option) => (
+                  <button
+                    key={option}
+                    className={
+                      answers.graceful === option
+                        ? option === '婉約派'
+                          ? 'correct'
+                          : 'wrong'
+                        : ''
+                    }
+                    onClick={() => choose('graceful', option)}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </section>
+            <section>
+              <h3>乙・蘇軾〈定風波〉</h3>
+              <p>
+                莫聽穿林打葉聲，何妨吟嘯且徐行。竹杖芒鞋輕勝馬，誰怕？一蓑煙雨任平生。
+              </p>
+              <p>
+                料峭春風吹酒醒，微冷，山頭斜照卻相迎。回首向來蕭瑟處，歸去，也無風雨也無晴。
+              </p>
+              <div>
+                {['婉約派', '豪放派'].map((option) => (
+                  <button
+                    key={option}
+                    className={
+                      answers.bold === option
+                        ? option === '豪放派'
+                          ? 'correct'
+                          : 'wrong'
+                        : ''
+                    }
+                    onClick={() => choose('bold', option)}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </section>
+          </div>
+          {answers.graceful && answers.bold && (
+            <small>
+              {answers.graceful === '婉約派' && answers.bold === '豪放派'
+                ? '兩闋都判斷正確！'
+                : '比較情感表達與整體氣勢，再試一次。'}
             </small>
           )}
         </article>
       </div>
-    </section>
-  );
-}
-
-function QuizChoice({
-  number,
-  question,
-  options,
-  answer,
-  correct,
-  choose,
-}: {
-  number: string;
-  question: string;
-  options: string[];
-  answer?: string;
-  correct: string;
-  choose: (value: string) => void;
-}) {
-  return (
-    <article className="quiz-card">
-      <span>{number}・選擇</span>
-      <h2>{question}</h2>
-      <div>
-        {options.map((option) => (
-          <button
-            key={option}
-            className={
-              answer === option
-                ? option === correct
-                  ? 'correct'
-                  : 'wrong'
-                : ''
-            }
-            onClick={() => choose(option)}
-          >
-            {option}
-          </button>
-        ))}
+      <div className="checkpoint-finish">
+        <Button
+          disabled={score !== 5}
+          onClick={() => {
+            setCertificate(true);
+            window.setTimeout(
+              () =>
+                document
+                  .getElementById('ci-certificate')
+                  ?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
+              50,
+            );
+          }}
+        >
+          <Sparkles />
+          {score === 5 ? '完成闖關，領取結業證書！' : '五關全對才能領取證書'}
+        </Button>
       </div>
-      {answer && (
-        <small>
-          {answer === correct ? '答對了！' : '再回前面的分頁找線索。'}
-        </small>
+      {certificate && score === 5 && (
+        <section
+          className="ci-certificate"
+          id="ci-certificate"
+          aria-label="詞館虛擬結業證書"
+        >
+          <div className="certificate-seal">詞</div>
+          <p>韻文時空館・詞館</p>
+          <h2>結業證書</h2>
+          <span>恭喜你完成「詞學闖關戰」</span>
+          <strong>已能辨識詞的由來、規則、類別與風格</strong>
+          <div className="certificate-signature">
+            <span>發想設計・蘇牧盈老師</span>
+            <span>詞學小達人・認證通過</span>
+          </div>
+        </section>
       )}
-    </article>
+    </section>
   );
 }
 
@@ -1823,11 +2008,11 @@ export default function Home() {
       case 'create':
         return <CreatePage />;
       case 'aliases':
-        return <AliasesPage />;
+        return <AliasesPage next={() => navigate('types')} />;
       case 'types':
-        return <TypesPage />;
+        return <TypesPage next={() => navigate('styles')} />;
       case 'styles':
-        return <StylesPage />;
+        return <StylesPage next={() => navigate('checkpoint')} />;
       case 'checkpoint':
         return <CheckpointPage />;
       default:
