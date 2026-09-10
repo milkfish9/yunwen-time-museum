@@ -2910,10 +2910,10 @@ function QualityPoemSheet({
     <article className="quality-poem-sheet">
       <header>
         <div>
-          <span>{item.sourceLabel}</span>
+          <span>待檢卷宗</span>
           <h2>〈{item.title}〉</h2>
         </div>
-        <strong>{item.author}</strong>
+        <strong>身分尚未公布</strong>
       </header>
       <div
         className="poem-lines quality-poem-lines"
@@ -3126,6 +3126,12 @@ function JuejuQualityPage({ finish }: { finish: () => void }) {
           >
             <span>{item.result === '基礎規格合格' ? '通過' : '退件'}</span>
             <h2>{item.result}</h2>
+            <div className="quality-identity-reveal">
+              <strong>{item.sourceLabel}</strong>
+              <span>
+                〈{item.title}〉·{item.author}
+              </span>
+            </div>
             <p>{item.finding}</p>
             <Button onClick={nextCase}>
               {caseIndex === qualityCases.length - 1

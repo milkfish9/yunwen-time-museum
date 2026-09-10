@@ -4046,6 +4046,19 @@ button[data-slot='button'] {
   margin: 12px 0 5px;
   font-size: clamp(1.8rem, 4vw, 3rem);
 }
+.quality-identity-reveal {
+  display: flex;
+  margin: 6px 0 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.quality-identity-reveal > * {
+  padding: 6px 11px;
+  border: 1px solid currentColor;
+  border-radius: 99px;
+  background: rgb(255 255 255 / 68%);
+}
 .quality-verdict p {
   max-width: 680px;
   margin: 0 0 18px;
