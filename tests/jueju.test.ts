@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { juejuPoems, rhymeRules } from '../data/jueju.ts';
+import { qualityCases } from '../data/jueju-quality.ts';
 
 void test('第一分頁只使用三首指定絕句，順序正確', () => {
   assert.deepEqual(
@@ -51,6 +52,49 @@ void test('結構卡押韻規則符合第一句可選、偶數句必押、第三
       ['第2句', '一定押韻'],
       ['第3句', '不押韻'],
       ['第4句', '一定押韻'],
+    ],
+  );
+});
+
+void test('絕句品管局使用一首真實唐詩與兩首明確標示的教學擬作', () => {
+  assert.deepEqual(
+    qualityCases.map((item) => [item.title, item.sourceLabel]),
+    [
+      ['竹里館', '唐詩'],
+      ['山窗即景', '教學擬作'],
+      ['江樓晚望', '教學擬作'],
+    ],
+  );
+});
+
+void test('品管卷宗依序檢驗完全合格、字數故障與押韻故障', () => {
+  assert.deepEqual(
+    qualityCases.map((item) => item.expected),
+    [
+      {
+        lineGate: 'four-lines',
+        characterGate: 'five-character',
+        rhymeGate: 'rhyme-pass',
+      },
+      {
+        lineGate: 'four-lines',
+        characterGate: 'invalid-character-count',
+      },
+      {
+        lineGate: 'four-lines',
+        characterGate: 'five-character',
+        rhymeGate: 'rhyme-fail',
+      },
+    ],
+  );
+  assert.deepEqual(
+    qualityCases.map((item) =>
+      item.lines.map((line) => Array.from(line).length),
+    ),
+    [
+      [5, 5, 5, 5],
+      [6, 6, 6, 6],
+      [5, 5, 5, 5],
     ],
   );
 });

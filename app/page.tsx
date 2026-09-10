@@ -34,6 +34,11 @@ import {
   wheelTargetDegrees,
 } from '@/lib/ci-workshop';
 import { juejuPoems, rhymeRules, type JuejuPoem } from '@/data/jueju';
+import {
+  qualityCases,
+  type QualityCase,
+  type QualityDecision,
+} from '@/data/jueju-quality';
 
 type PageId =
   | 'origin'
@@ -2438,10 +2443,108 @@ function PoemMiniCard({ poem }: { poem: JuejuPoem }) {
     <article className="poem-mini-card">
       <h3>〈{poem.title}〉</h3>
       <span>{poem.author}</span>
+      <div className="poem-mini-lines" aria-label={`${poem.title}全文`}>
+        {poem.lines.map((line, index) => (
+          <p key={line}>
+            <small>{index + 1}</small>
+            {line}
+          </p>
+        ))}
+      </div>
       <strong>4句</strong>
       <strong>每句{poem.charactersPerLine}字</strong>
       <b>→ {poem.kind}</b>
     </article>
+  );
+}
+
+function RuleMatchReview({ onComplete }: { onComplete: () => void }) {
+  const [selectedRule, setSelectedRule] = useState<string | null>(null);
+  const [ruleMatches, setRuleMatches] = useState<Record<string, string>>({});
+  const [dragging, setDragging] = useState<{
+    rule: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  const rules = ['一定押韻', '可押可不押', '不押韻'];
+  const rulesReady = rhymeRules.every(
+    (item) => ruleMatches[item.position] === item.rule,
+  );
+
+  useEffect(() => {
+    if (rulesReady) onComplete();
+  }, [onComplete, rulesReady]);
+
+  function placeRule(position: string, rule: string) {
+    setRuleMatches((current) => ({ ...current, [position]: rule }));
+    setSelectedRule(null);
+  }
+
+  return (
+    <div className="rule-match-board">
+      <section className="rule-drag-bank" aria-label="可拖曳的押韻規則">
+        <h4>拖曳規則</h4>
+        {rules.map((rule) => (
+          <button
+            type="button"
+            key={rule}
+            className={selectedRule === rule ? 'selected' : ''}
+            onClick={() => setSelectedRule(rule)}
+            onPointerDown={(event) => {
+              event.currentTarget.setPointerCapture(event.pointerId);
+              setDragging({ rule, x: event.clientX, y: event.clientY });
+            }}
+            onPointerMove={(event) => {
+              if (!dragging || dragging.rule !== rule) return;
+              setDragging({ rule, x: event.clientX, y: event.clientY });
+            }}
+            onPointerUp={(event) => {
+              const target = document
+                .elementFromPoint(event.clientX, event.clientY)
+                ?.closest<HTMLElement>('[data-rule-position]');
+              if (target?.dataset.rulePosition) {
+                placeRule(target.dataset.rulePosition, rule);
+              }
+              setDragging(null);
+            }}
+          >
+            <span aria-hidden="true">☷</span>
+            {rule}
+          </button>
+        ))}
+        <p>也可先點規則，再點右邊句位。</p>
+      </section>
+      <section className="rule-drop-targets" aria-label="押韻句位">
+        <h4>放到句位</h4>
+        {rhymeRules.map((item) => {
+          const answer = ruleMatches[item.position];
+          const right = answer === item.rule;
+          return (
+            <button
+              type="button"
+              key={item.position}
+              data-rule-position={item.position}
+              className={answer ? (right ? 'correct' : 'wrong') : ''}
+              onClick={() => {
+                if (selectedRule) placeRule(item.position, selectedRule);
+              }}
+            >
+              <strong>{item.position}</strong>
+              <span>{answer ?? '拖到這裡'}</span>
+            </button>
+          );
+        })}
+      </section>
+      {dragging && (
+        <div
+          className="rule-drag-ghost"
+          style={{ left: dragging.x, top: dragging.y }}
+          aria-hidden="true"
+        >
+          {dragging.rule}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -2450,15 +2553,11 @@ function JuejuReview({ onComplete }: { onComplete: () => void }) {
   const [lineReady, setLineReady] = useState(false);
   const [lineFeedback, setLineFeedback] = useState('');
   const [characterChoices, setCharacterChoices] = useState<number[]>([]);
-  const [selectedRule, setSelectedRule] = useState<string | null>(null);
-  const [ruleMatches, setRuleMatches] = useState<Record<string, string>>({});
   const charactersReady =
     characterChoices.length === 2 &&
     characterChoices.includes(5) &&
     characterChoices.includes(7);
-  const rulesReady = rhymeRules.every(
-    (item) => ruleMatches[item.position] === item.rule,
-  );
+  const [rulesReady, setRulesReady] = useState(false);
   const complete = lineReady && charactersReady && rulesReady;
 
   useEffect(() => {
@@ -2554,42 +2653,7 @@ function JuejuReview({ onComplete }: { onComplete: () => void }) {
 
       <div className="review-step">
         <h3>三、把押韻規則放到正確句位</h3>
-        <div className="rule-label-bank" aria-label="押韻規則標籤">
-          {['一定押韻', '可押可不押', '不押韻'].map((rule) => (
-            <button
-              type="button"
-              key={rule}
-              className={selectedRule === rule ? 'selected' : ''}
-              onClick={() => setSelectedRule(rule)}
-            >
-              {rule}
-            </button>
-          ))}
-        </div>
-        <div className="rule-position-grid">
-          {rhymeRules.map((item) => {
-            const answer = ruleMatches[item.position];
-            const right = answer === item.rule;
-            return (
-              <button
-                type="button"
-                key={item.position}
-                className={answer ? (right ? 'correct' : 'wrong') : ''}
-                onClick={() => {
-                  if (!selectedRule) return;
-                  setRuleMatches((current) => ({
-                    ...current,
-                    [item.position]: selectedRule,
-                  }));
-                  setSelectedRule(null);
-                }}
-              >
-                <strong>{item.position}</strong>
-                <span>{answer ?? '放入規則'}</span>
-              </button>
-            );
-          })}
-        </div>
+        <RuleMatchReview onComplete={() => setRulesReady(true)} />
       </div>
     </section>
   );
@@ -2833,12 +2897,245 @@ function JuejuPage({ next }: { next: () => void }) {
   );
 }
 
-function JuejuQualityPage() {
+function QualityPoemSheet({
+  item,
+  revealed,
+  onReveal,
+}: {
+  item: QualityCase;
+  revealed: number[];
+  onReveal: (index: number) => void;
+}) {
   return (
-    <section className="jueju-lesson quality-placeholder">
-      <span className="jueju-section-label">近體詩館 · 第二分頁</span>
-      <h1>《絕句品管局》</h1>
-      <p>第一分頁建立的結構規則，將在這裡成為檢驗作品的工具。</p>
+    <article className="quality-poem-sheet">
+      <header>
+        <div>
+          <span>{item.sourceLabel}</span>
+          <h2>〈{item.title}〉</h2>
+        </div>
+        <strong>{item.author}</strong>
+      </header>
+      <div
+        className="poem-lines quality-poem-lines"
+        aria-label={`${item.title}全文`}
+      >
+        {item.lines.map((line, index) => {
+          const ending = item.endings[index];
+          const isRevealed = revealed.includes(index);
+          return (
+            <button
+              type="button"
+              key={line}
+              className={isRevealed ? 'ending-inspected' : ''}
+              onClick={() => onReveal(index)}
+            >
+              <em className="poem-line-number" aria-label={`第${index + 1}句`}>
+                {index + 1}
+              </em>
+              <span>{line.slice(0, -1)}</span>
+              <b className={isRevealed ? 'ending-revealed' : ''}>
+                {ending.character}
+              </b>
+              {isRevealed && <small>{ending.zhuyin}</small>}
+            </button>
+          );
+        })}
+      </div>
+    </article>
+  );
+}
+
+function JuejuQualityPage({ finish }: { finish: () => void }) {
+  const [caseIndex, setCaseIndex] = useState(0);
+  const [gate, setGate] = useState<'line' | 'character' | 'rhyme'>('line');
+  const [feedback, setFeedback] = useState('');
+  const [revealed, setRevealed] = useState<number[]>([]);
+  const [resolved, setResolved] = useState(false);
+  const [finished, setFinished] = useState(false);
+  const item = qualityCases[caseIndex];
+  const gateNumber = gate === 'line' ? 1 : gate === 'character' ? 2 : 3;
+
+  const options: { label: string; value: QualityDecision }[] =
+    gate === 'line'
+      ? [
+          { label: '符合4句規格', value: 'four-lines' },
+          { label: '句數不合', value: 'not-four-lines' },
+        ]
+      : gate === 'character'
+        ? [
+            { label: '五言候選', value: 'five-character' },
+            { label: '七言候選', value: 'seven-character' },
+            { label: '字數不合', value: 'invalid-character-count' },
+          ]
+        : [
+            { label: '押韻合格', value: 'rhyme-pass' },
+            { label: '押韻故障', value: 'rhyme-fail' },
+          ];
+
+  function expectedDecision() {
+    if (gate === 'line') return item.expected.lineGate;
+    if (gate === 'character') return item.expected.characterGate;
+    return item.expected.rhymeGate;
+  }
+
+  function chooseDecision(value: QualityDecision) {
+    if (value !== expectedDecision()) {
+      setFeedback(
+        gate === 'line'
+          ? '再看一次句前小數字，確認這份卷宗共有幾句。'
+          : gate === 'character'
+            ? '請挑一句逐字數；句前小數字不算在詩句內。'
+            : '再比較第2、4句的句尾聲音，它們是否相押？',
+      );
+      return;
+    }
+
+    setFeedback('');
+    if (gate === 'line') {
+      setGate('character');
+      return;
+    }
+    if (gate === 'character' && item.expected.rhymeGate) {
+      setGate('rhyme');
+      return;
+    }
+    setResolved(true);
+  }
+
+  function nextCase() {
+    if (caseIndex === qualityCases.length - 1) {
+      setFinished(true);
+      return;
+    }
+    setCaseIndex((current) => current + 1);
+    setGate('line');
+    setFeedback('');
+    setRevealed([]);
+    setResolved(false);
+    window.setTimeout(
+      () => window.scrollTo({ top: 0, behavior: 'smooth' }),
+      30,
+    );
+  }
+
+  if (finished) {
+    return (
+      <section className="jueju-lesson quality-complete" aria-live="polite">
+        <span className="jueju-section-label">絕句品管局 · 檢驗完成</span>
+        <div className="quality-badge" aria-hidden="true">
+          <ShieldCheck />
+        </div>
+        <h1>三份卷宗全數完成品管</h1>
+        <p>你已經能把「4句、每句5或7字、第2、4句一定押韻」當成檢驗工具。</p>
+        <div className="quality-summary-stamps">
+          {qualityCases.map((qualityCase) => (
+            <span key={qualityCase.id}>
+              〈{qualityCase.title}〉 {qualityCase.result}
+            </span>
+          ))}
+        </div>
+        <Button onClick={finish}>
+          完成品管，回到韻文時間圖 <ArrowRight />
+        </Button>
+      </section>
+    );
+  }
+
+  return (
+    <section className="jueju-lesson quality-station">
+      <header className="quality-station-header">
+        <div>
+          <span className="jueju-section-label">近體詩館 · 第二分頁</span>
+          <h1>《絕句品管局》</h1>
+          <p>本局只檢查剛學過的句數、字數與押韻三項基本規格。</p>
+        </div>
+        <div
+          className="quality-progress"
+          aria-label={`第${caseIndex + 1}份，共3份`}
+        >
+          <strong>{caseIndex + 1}</strong>
+          <span>/ 3 份卷宗</span>
+        </div>
+      </header>
+
+      <QualityPoemSheet
+        item={item}
+        revealed={revealed}
+        onReveal={(index) =>
+          setRevealed((current) =>
+            current.includes(index) ? current : [...current, index],
+          )
+        }
+      />
+
+      <section className="inspection-console">
+        <div className="inspection-track" aria-label="檢驗進度">
+          {['句數', '字數', '押韻'].map((label, index) => (
+            <span
+              key={label}
+              className={
+                gateNumber > index + 1
+                  ? 'passed'
+                  : gateNumber === index + 1
+                    ? 'active'
+                    : ''
+              }
+            >
+              {index + 1} {label}
+            </span>
+          ))}
+        </div>
+
+        {!resolved ? (
+          <div className="inspection-question">
+            <span>檢驗門 {gateNumber}</span>
+            <h2>
+              {gate === 'line'
+                ? '這份卷宗符合4句規格嗎？'
+                : gate === 'character'
+                  ? '每句字數應該蓋哪一種章？'
+                  : '點開第2、4句的聲音線索，再判斷押韻。'}
+            </h2>
+            <div className="inspection-options">
+              {options.map((option) => (
+                <button
+                  type="button"
+                  key={option.value}
+                  disabled={
+                    gate === 'rhyme' &&
+                    (!revealed.includes(1) || !revealed.includes(3))
+                  }
+                  onClick={() => chooseDecision(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            {gate === 'rhyme' &&
+              (!revealed.includes(1) || !revealed.includes(3)) && (
+                <p className="inspection-hint">請先點詩的第2、4句。</p>
+              )}
+            {feedback && (
+              <output className="inspection-feedback">{feedback}</output>
+            )}
+          </div>
+        ) : (
+          <div
+            className={`quality-verdict ${item.result === '基礎規格合格' ? 'approved' : 'returned'}`}
+            aria-live="polite"
+          >
+            <span>{item.result === '基礎規格合格' ? '通過' : '退件'}</span>
+            <h2>{item.result}</h2>
+            <p>{item.finding}</p>
+            <Button onClick={nextCase}>
+              {caseIndex === qualityCases.length - 1
+                ? '查看品管結果'
+                : '檢查下一份卷宗'}{' '}
+              <ArrowRight />
+            </Button>
+          </div>
+        )}
+      </section>
     </section>
   );
 }
@@ -2888,7 +3185,7 @@ export default function Home() {
       case 'jueju':
         return <JuejuPage next={() => navigate('jueju-quality')} />;
       case 'jueju-quality':
-        return <JuejuQualityPage />;
+        return <JuejuQualityPage finish={() => navigate(null)} />;
       default:
         return null;
     }
