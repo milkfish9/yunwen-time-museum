@@ -4263,3 +4263,32 @@ button[data-slot='button'] {
 .number-choice-grid{display:grid;grid-template-rows:repeat(3,1fr);gap:.35rem;width:5.5rem}.number-choice-grid button{min-height:2.4rem;border:1px solid #b9976a;border-radius:8px;background:#fffaf0;font-size:1.25rem;font-weight:700;color:#624a31;cursor:pointer}.number-choice-grid button.selected{background:#ead39b;border-color:#9d7947}.number-choice-grid button:disabled{cursor:default}.observation-plain{display:grid;gap:.45rem}.observation-plain p{margin:0;padding:.65rem 1rem;border-radius:10px;background:rgba(255,250,238,.7);font-family:serif;font-size:1.2rem;letter-spacing:.08em}.rhyme-comparison-table span{color:#4b8a55;font-weight:800}.rhyme-comparison-table span.optional-rhyme{color:#9c7447;font-size:1.2rem}
 .modern-poetry-branch{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr;gap:1rem 2rem;align-items:center;max-width:560px;margin:1rem auto;padding:1.2rem;border:1px solid rgba(104,77,47,.28);border-radius:20px;background:linear-gradient(135deg,#fbf3de,#e8eadb);text-align:center}.modern-poetry-branch>strong{grid-column:1/-1;justify-self:center;padding:.7rem 1.5rem;border-radius:999px;background:#5d765a;color:#fff;font-size:1.5rem}.modern-poetry-branch>i{grid-column:1/-1;width:4px;height:28px;background:#9b7b52;justify-self:center;position:relative}.modern-poetry-branch>i:after{content:'';position:absolute;left:2px;top:24px;width:250px;height:2px;background:#9b7b52;transform:translateX(-50%)}.modern-poetry-branch>div{position:relative;padding:.7rem 1rem;border:2px solid #b79461;border-radius:14px;background:#fffaf0}.modern-poetry-branch>div:before{content:'';position:absolute;top:-17px;left:50%;width:2px;height:15px;background:#9b7b52}.modern-poetry-branch span{display:block;font-size:1.35rem;font-weight:800;color:#62482f}.modern-poetry-branch small{color:#7d6a51}.branch-lead{text-align:center;font-size:1.25rem;font-weight:700;color:#75533a;margin:.8rem 0 1.2rem}
 @media (max-width:720px){.modern-poetry-branch{gap:.7rem}.modern-poetry-branch>i:after{width:150px}.modern-poetry-branch>div{padding:.55rem .4rem}}
+
+/* 觀察流程：先看完整詩，再在提示後點選押韻句，避免來回捲動。 */
+.poem-observation{display:flex;flex-direction:column;gap:24px}
+.poem-observation>.poem-title-row{order:0}
+.poem-observation>.observation-plain{order:1}
+.poem-observation>.poem-questions{order:2}
+.poem-observation>.standalone-rhyme-prompt{order:2}
+.poem-observation>.poem-lines:not(.observation-plain){order:3}
+.poem-observation>.candidate-banner,.poem-observation>.page-advance,.poem-observation>.discovery-flip-reveal{order:4}
+.lushi-observation{display:flex;flex-direction:column;gap:18px}
+.lushi-observation>.observation-plain{order:1}
+.lushi-observation>.lushi-choices{order:2}
+.lushi-observation>.lushi-rhyme-prompt{order:3}
+.lushi-observation>.poem-lines{order:4}
+.lushi-observation>.page-advance{order:5}
+.lushi-observation .poem-lines{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+
+/* 分支線以同一個垂直主幹接到水平分流，線段不會錯位。 */
+.modern-poetry-branch{position:relative;grid-template-rows:auto 34px auto;gap:.35rem 2rem;overflow:visible}
+.modern-poetry-branch>i{height:34px;z-index:1;background:linear-gradient(#9b7b52,#9b7b52) center/4px 100% no-repeat}
+.modern-poetry-branch>i:after{left:50%;top:28px;width:calc(100% - 5rem);height:4px;border-radius:4px;background:#9b7b52;transform:translateX(-50%)}
+.modern-poetry-branch>div{z-index:2}
+.modern-poetry-branch>div:before{top:-7px;height:7px}
+@media (max-width:720px){
+  .lushi-observation .poem-lines{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .modern-poetry-branch{grid-template-rows:auto 30px auto;gap:.25rem .7rem}
+  .modern-poetry-branch>i{height:30px}
+  .modern-poetry-branch>i:after{top:25px;width:calc(100% - 2.5rem);height:3px}
+}
