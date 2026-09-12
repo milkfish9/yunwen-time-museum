@@ -500,6 +500,25 @@ function CapsuleMachine({
   );
 }
 
+function CiPatternPrimer({ onContinue }: { onContinue: () => void }) {
+  return (
+    <section className="tune-primer" aria-labelledby="tune-primer-title">
+      <div className="tune-primer-copy">
+        <span className="step-label">先認識一個關鍵概念</span>
+        <h3 id="tune-primer-title">詞牌，就是旋律的譜</h3>
+        <p>它先規定旋律怎麼走、句子怎麼排列；換上不同文字，仍能沿著同一副譜唱。</p>
+        <Button onClick={onContinue}>我懂詞牌了，來抽一副旋律 <ArrowRight /></Button>
+      </div>
+      <div className="tune-primer-visual" aria-label="同一旋律譜填入不同歌詞的示意">
+        <div className="primer-melody"><i /><i /><i /><i /><i /><i /></div>
+        <div className="primer-lyrics"><span>春</span><span>花</span><span>秋</span><span>月</span><span>何</span><span>時</span></div>
+        <div className="primer-lyrics alternate"><span>校</span><span>門</span><span>鐘</span><span>聲</span><span>催</span><span>我</span></div>
+        <small>同一副詞牌・可以填入不同內容</small>
+      </div>
+    </section>
+  );
+}
+
 function TopicWheel({
   topic,
   spinning,
@@ -1283,13 +1302,24 @@ function categoryFor(count: number): CiCategory {
   return '長調';
 }
 
+function writingCharacters(text: string) {
+  return Array.from(text).filter((character) => /[\p{Script=Han}A-Za-z0-9]/u.test(character));
+}
+
 function TypesPage({ next }: { next: () => void }) {
-  const [marker, setMarker] = useState(56);
-  const [openWork, setOpenWork] = useState<string | null>('yumeiren');
+  const [openWork, setOpenWork] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, CiCategory>>({});
-  const markerCategory = categoryFor(marker);
+  const [revealed, setRevealed] = useState<Record<string, number>>({});
+  const [orderedWorks] = useState(() => {
+    const works = [...categoryWorks];
+    for (let index = works.length - 1; index > 0; index -= 1) {
+      const swap = randomIndex(index + 1);
+      [works[index], works[swap]] = [works[swap], works[index]];
+    }
+    return works;
+  });
   const correctAnswers = categoryWorks.filter((work) => {
-    const count = countWritingCharacters(work.lines.join(''));
+    const count = writingCharacters(work.lines.join('')).length;
     return answers[work.id] === categoryFor(count);
   }).length;
 
@@ -1298,7 +1328,7 @@ function TypesPage({ next }: { next: () => void }) {
       <header className="lesson-heading compact-heading">
         <p className="eyebrow">第四分頁 · 字數分類尺</p>
         <h1 id="types-title">一闋詞有幾個字，決定它的類別</h1>
-        <p>拖動尺上的圓點，先找出小令、中調與長調的字數範圍。</p>
+        <p>先記住上方的字數範圍，再逐闋詞拉動字數尺，自己判斷它是哪一類。</p>
       </header>
       <div className="category-ruler">
         <div className="category-bands">
@@ -1318,21 +1348,12 @@ function TypesPage({ next }: { next: () => void }) {
             91 字以上
           </span>
         </div>
-        <input
-          aria-label="詞的字數"
-          type="range"
-          min="20"
-          max="120"
-          value={marker}
-          onChange={(event) => setMarker(Number(event.target.value))}
-        />
-        <output>
-          <strong>{marker}</strong> 字，是「{markerCategory}」
-        </output>
       </div>
       <div className="work-classifier">
-        {categoryWorks.map((work) => {
-          const count = countWritingCharacters(work.lines.join(''));
+        {orderedWorks.map((work) => {
+          const characters = writingCharacters(work.lines.join(''));
+          const count = characters.length;
+          const currentReveal = revealed[work.id] ?? 0;
           const answer = answers[work.id];
           const right = answer === categoryFor(count);
           return (
@@ -1348,7 +1369,7 @@ function TypesPage({ next }: { next: () => void }) {
               >
                 <span>{work.author}</span>
                 <strong>〈{work.tune}〉</strong>
-                <small>{count} 字・點開讀全文</small>
+                <small>點開讀全文，再拉尺探索字數</small>
               </button>
               {openWork === work.id && (
                 <div className="work-fulltext">
@@ -1357,6 +1378,33 @@ function TypesPage({ next }: { next: () => void }) {
                   ))}
                 </div>
               )}
+              <div className="category-exploration">
+                <div className="character-reveal-stream" aria-label={`${work.tune}逐字亮起`}>
+                  {characters.map((character, index) => (
+                    <span className={index < currentReveal ? 'revealed' : ''} key={`${work.id}-${index}`}>
+                      {character}
+                    </span>
+                  ))}
+                </div>
+                <input
+                  className="work-count-slider"
+                  aria-label={`探索〈${work.tune}〉字數`}
+                  type="range"
+                  min="0"
+                  max={characters.length}
+                  value={currentReveal}
+                  onChange={(event) =>
+                    setRevealed((current) => ({ ...current, [work.id]: Number(event.target.value) }))
+                  }
+                />
+                <output className="count-exploration-output">
+                  {currentReveal === characters.length
+                    ? `${count} 字`
+                    : currentReveal > 0
+                      ? `已亮起 ${currentReveal} 字`
+                      : '拉動尺，讓字一個個亮起'}
+                </output>
+              </div>
               <div
                 className="category-choices"
                 aria-label={`判斷${work.tune}的類別`}
@@ -1364,6 +1412,8 @@ function TypesPage({ next }: { next: () => void }) {
                 {(['小令', '中調', '長調'] as CiCategory[]).map((category) => (
                   <button
                     key={category}
+                    type="button"
+                    disabled={currentReveal !== characters.length}
                     className={
                       answer === category ? (right ? 'correct' : 'wrong') : ''
                     }
@@ -1823,7 +1873,7 @@ function CheckpointPage() {
   );
 }
 
-function CreatePage() {
+function CreatePage({ onBoardPublished }: { onBoardPublished?: () => void }) {
   const [prepStep, setPrepStep] = useState(1);
   const [workId, setWorkId] = useState(yuMeiRenWorks[0].id);
   const [scoreReady, setScoreReady] = useState(false);
@@ -1832,10 +1882,7 @@ function CreatePage() {
   const [topic, setTopic] = useState<string | null>(null);
   const [wheelSpinning, setWheelSpinning] = useState(false);
   const [wheelTurns, setWheelTurns] = useState(0);
-  const [boardRevision, setBoardRevision] = useState(0);
-  const [boardVisible, setBoardVisible] = useState(false);
-  const [publishedThisSession, setPublishedThisSession] = useState(false);
-  const [adminPassword, setAdminPassword] = useState<string | null>(null);
+  const [tunePrimerSeen, setTunePrimerSeen] = useState(false);
   const timers = useRef<number[]>([]);
   const selectedWork =
     yuMeiRenWorks.find((work) => work.id === workId) ?? yuMeiRenWorks[0];
@@ -2009,9 +2056,13 @@ function CreatePage() {
             </div>
           </div>
 
-          <CapsuleMachine phase={phase} pattern={pattern} spin={spinCapsule} />
+          {!tunePrimerSeen ? (
+            <CiPatternPrimer onContinue={() => setTunePrimerSeen(true)} />
+          ) : (
+            <CapsuleMachine phase={phase} pattern={pattern} spin={spinCapsule} />
+          )}
 
-          {pattern && (
+          {tunePrimerSeen && pattern && (
             <div className="capsule-reveal" aria-live="polite">
               <div className="open-capsule">
                 <span />
@@ -2031,7 +2082,7 @@ function CreatePage() {
             </div>
           )}
 
-          {pattern && (
+          {tunePrimerSeen && pattern && (
             <TopicWheel
               topic={topic}
               spinning={wheelSpinning}
@@ -2040,40 +2091,14 @@ function CreatePage() {
             />
           )}
 
-          {pattern && topic && (
+          {tunePrimerSeen && pattern && topic && (
             <WritingMold
               key={`${pattern.id}-${topic}`}
               pattern={pattern}
               topic={topic}
-              onPublished={() => {
-                setPublishedThisSession(true);
-                setBoardVisible(true);
-                setBoardRevision((value) => value + 1);
-              }}
+              onPublished={() => onBoardPublished?.()}
             />
           )}
-
-          {boardVisible && (
-            <div className="board-arrival">
-              <BianjingBoard
-                revision={boardRevision}
-                adminPassword={adminPassword ?? undefined}
-                onPasswordChanged={setAdminPassword}
-                onExitAdmin={() => {
-                  setAdminPassword(null);
-                  setBoardVisible(publishedThisSession);
-                }}
-              />
-            </div>
-          )}
-
-          <BoardAdminAccess
-            onAuthenticated={(password) => {
-              setAdminPassword(password);
-              setBoardVisible(true);
-              setBoardRevision((value) => value + 1);
-            }}
-          />
         </div>
       )}
     </section>
@@ -3149,6 +3174,12 @@ function JuejuQualityPage({ finish }: { finish: () => void }) {
 export default function Home() {
   const [page, setPage] = useState<PageId | null>(null);
   const [highlightedHall, setHighlightedHall] = useState<string | null>(null);
+  const [boardAvailable, setBoardAvailable] = useState(() => {
+    try { return localStorage.getItem('yunwen-board-available') === '1'; } catch { return false; }
+  });
+  const [boardOpen, setBoardOpen] = useState(false);
+  const [boardRevision, setBoardRevision] = useState(0);
+  const [adminPassword, setAdminPassword] = useState<string | null>(null);
 
   useEffect(() => {
     const route = () => {
@@ -3166,6 +3197,13 @@ export default function Home() {
     return () => window.removeEventListener('hashchange', route);
   }, []);
 
+  function handleBoardPublished() {
+    setBoardAvailable(true);
+    setBoardOpen(true);
+    setBoardRevision((value) => value + 1);
+    try { localStorage.setItem('yunwen-board-available', '1'); } catch {}
+  }
+
   function navigate(next: PageId | null) {
     if (next === 'jueju') location.hash = 'jintishi/jueju';
     else if (next === 'jueju-quality') location.hash = 'jintishi/quality';
@@ -3179,7 +3217,7 @@ export default function Home() {
       case 'origin':
         return <OriginPage next={() => navigate('create')} />;
       case 'create':
-        return <CreatePage />;
+        return <CreatePage onBoardPublished={handleBoardPublished} />;
       case 'aliases':
         return <AliasesPage next={() => navigate('types')} />;
       case 'types':
@@ -3214,6 +3252,11 @@ export default function Home() {
               ? '近體詩館 · 絕句'
               : '詞館 · 六個分頁'}
         </span>
+        {boardAvailable && (
+          <button className="global-board-entry" type="button" onClick={() => setBoardOpen(true)}>
+            <Megaphone /> 汴京城佈告欄
+          </button>
+        )}
       </header>
 
       <main id="main-content" className={page ? 'inside-view' : 'home-view'}>
@@ -3328,6 +3371,19 @@ export default function Home() {
       <footer className="site-credit">
         本站由蘇牧盈老師發想設計，Codex協助製作。
       </footer>
+      {boardOpen && (
+        <div className="board-overlay">
+          <button className="board-overlay-backdrop" type="button" aria-label="關閉佈告欄" onClick={() => setBoardOpen(false)} />
+          <dialog open className="board-drawer" aria-labelledby="global-board-title">
+            <div className="board-drawer-header">
+              <div><span className="eyebrow">作品共享區</span><h2 id="global-board-title">汴京城佈告欄</h2></div>
+              <button type="button" className="board-overlay-close" onClick={() => setBoardOpen(false)}>關閉</button>
+            </div>
+            <BianjingBoard revision={boardRevision} adminPassword={adminPassword ?? undefined} onPasswordChanged={setAdminPassword} onExitAdmin={() => setAdminPassword(null)} />
+            {!adminPassword && <BoardAdminAccess onAuthenticated={(password) => { setAdminPassword(password); setBoardRevision((value) => value + 1); }} />}
+          </dialog>
+        </div>
+      )}
     </>
   );
 }
