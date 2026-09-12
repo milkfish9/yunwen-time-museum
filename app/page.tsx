@@ -2447,6 +2447,24 @@ const lushiWorks = [
   { title: '聞官軍收河南河北', author: '杜甫', lines: ['劍外忽傳收薊北','初聞涕淚滿衣裳','卻看妻子愁何在','漫卷詩書喜欲狂','白日放歌須縱酒','青春作伴好還鄉','即從巴峽穿巫峽','便下襄陽向洛陽'], rhyme: [1,3,5,7] },
 ];
 
+function LushiSummaryReveal({ onContinue }: { onContinue: () => void }) {
+  const [flipped, setFlipped] = useState<string[]>([]);
+  const cards = [
+    { key: 'lines', front: '每首共有幾句？', back: '8句' },
+    { key: 'chars', front: '每句幾字？', back: '5字或7字' },
+    { key: 'rhymes', front: '哪些句子押韻？', back: '第2、4、6、8句' },
+    { key: 'wording', front: '每句5或7字叫什麼？', back: '五言或七言' },
+    { key: 'form', front: '共有8句叫什麼？', back: '律詩' },
+  ];
+  const allFlipped = flipped.length === cards.length;
+  return <div className="jueju-reveal lushi-summary-reveal" aria-live="polite">
+    <p className="flip-reveal-lead">把兩首律詩的觀察結果翻出來</p>
+    <div className="fact-flip-grid lushi-fact-grid">{cards.slice(0, 3).map((item) => <DiscoveryFlipCard key={item.key} item={item} flipped={flipped.includes(item.key)} onFlip={() => setFlipped((c) => c.includes(item.key) ? c : [...c, item.key])} />)}</div>
+    <div className="name-flip-grid lushi-name-grid">{cards.slice(3).map((item) => <DiscoveryFlipCard key={item.key} item={item} dramatic flipped={flipped.includes(item.key)} onFlip={() => setFlipped((c) => c.includes(item.key) ? c : [...c, item.key])} />)}</div>
+    {allFlipped && <div className="poem-kind-finale"><span>兩首律詩都觀察完成</span><h3>每首8句、每句5或7字，2468句押韻，七言！律詩！</h3><Button onClick={onContinue}>BUT！人生最重要就是這個BUT！ <ArrowRight /></Button></div>}
+  </div>;
+}
+
 // oxlint-disable jsx-a11y/label-has-associated-control
 function LushiPage({ next }: { next: () => void }) {
   const [workIndex, setWorkIndex] = useState(0);
@@ -2455,9 +2473,11 @@ function LushiPage({ next }: { next: () => void }) {
   const [locked, setLocked] = useState(false);
   const [selected, setSelected] = useState<number[]>([]);
   const [completed, setCompleted] = useState<number[]>([]);
+  const [showSummary, setShowSummary] = useState(false);
   const work = lushiWorks[workIndex];
   const right = locked && lineChoice === 8 && (charChoice === (workIndex ? 7 : 5)) && work.rhyme.every((n) => selected.includes(n));
-  return <section className="jueju-lesson lushi-lesson"><span className="jueju-section-label">近體詩館 · 第二分頁</span><h1>律詩概念</h1><p>觀察八句律詩，找出它和絕句相同、又更長的格律。</p><div className="lushi-work-switch">{lushiWorks.map((item,index)=><button type="button" className={index===workIndex?'selected':''} key={item.title} onClick={()=>{setWorkIndex(index);setLocked(false);setSelected([]);}}>{item.title}</button>)}</div><article className="lushi-observation"><h2>〈{work.title}〉</h2><p>先觀察：這首詩共有幾句？每句幾字？</p>{!locked ? <div className="observation-plain">{work.lines.map((line)=><p key={line}>{line}</p>)}</div> : <div className="poem-lines">{work.lines.map((line,index)=><button type="button" key={line} className={selected.includes(index)?'rhyme-selected':''} onClick={()=>work.rhyme.includes(index)&&setSelected((c)=>c.includes(index)?c:c.concat(index))}><em className="poem-line-number">{index+1}</em><span>{line}</span></button>)}</div>}<div className="lushi-choices"><label>共有 <NumberWheel value={lineChoice} options={[7,8,9]} min={7} max={9} label="律詩句數" locked={locked} onChange={setLineChoice}/> 句</label><label>每句 <NumberWheel value={charChoice} options={workIndex ? [6,7,8] : [4,5,6]} min={4} max={8} label="律詩字數" locked={locked} onChange={setCharChoice}/> 字</label></div>{!locked&&<Button onClick={()=>setLocked(true)}>確定句數與字數</Button>}{locked&&<><p className="rhyme-prompt lushi-rhyme-prompt"><strong>請按出有押韻的句子。</strong></p>{right&&<Button className="page-advance" onClick={()=>{setCompleted((c)=>c.includes(workIndex)?c:c.concat(workIndex));if(workIndex===0){setWorkIndex(1);setLocked(false);setSelected([]);setLineChoice(7);setCharChoice(6);}else{next();}}}>{completed.length===1?'BUT！人生最重要就是這個BUT！':'換看另一首律詩'} <ArrowRight/></Button>}</>}</article></section>;
+  if (showSummary) return <section className="jueju-lesson lushi-lesson"><span className="jueju-section-label">近體詩館 · 第二分頁</span><h1>律詩格律整理</h1><LushiSummaryReveal onContinue={next} /></section>;
+  return <section className="jueju-lesson lushi-lesson"><span className="jueju-section-label">近體詩館 · 第二分頁</span><h1>律詩概念</h1><p>觀察八句律詩，找出它和絕句相同、又更長的格律。</p><div className="lushi-work-switch">{lushiWorks.map((item,index)=><button type="button" className={index===workIndex?'selected':''} key={item.title} onClick={()=>{setWorkIndex(index);setLocked(false);setSelected([]);}}>{item.title}</button>)}</div><article className="lushi-observation"><h2>〈{work.title}〉</h2><p>先觀察：這首詩共有幾句？每句幾字？</p>{!locked ? <div className="observation-plain">{work.lines.map((line)=><p key={line}>{line}</p>)}</div> : <div className="poem-lines">{work.lines.map((line,index)=><button type="button" key={line} className={selected.includes(index)?'rhyme-selected':''} onClick={()=>work.rhyme.includes(index)&&setSelected((c)=>c.includes(index)?c:c.concat(index))}><em className="poem-line-number">{index+1}</em><span>{line}</span></button>)}</div>}<div className="lushi-choices"><label>共有 <NumberWheel value={lineChoice} options={[7,8,9]} min={7} max={9} label="律詩句數" locked={locked} onChange={setLineChoice}/> 句</label><label>每句 <NumberWheel value={charChoice} options={workIndex ? [6,7,8] : [4,5,6]} min={4} max={8} label="律詩字數" locked={locked} onChange={setCharChoice}/> 字</label></div>{!locked&&<Button onClick={()=>setLocked(true)}>確定句數與字數</Button>}{locked&&<><p className="rhyme-prompt lushi-rhyme-prompt"><strong>請按出有押韻的句子。</strong></p>{right&&<Button className="page-advance" onClick={()=>{setCompleted((c)=>c.includes(workIndex)?c:c.concat(workIndex));if(workIndex===0){setWorkIndex(1);setLocked(false);setSelected([]);setLineChoice(7);setCharChoice(6);}else{setShowSummary(true);}}}>{completed.length===1?'BUT！人生最重要就是這個BUT！':'換看另一首律詩'} <ArrowRight/></Button>}</>}</article></section>;
 }
 
 // oxlint-enable jsx-a11y/label-has-associated-control
