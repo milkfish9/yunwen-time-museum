@@ -204,20 +204,17 @@ const melodyDurations = Array.from(
   (_, index) => durationPattern[index % durationPattern.length],
 );
 
-function YuMeiRenScore({ work }: { work: (typeof yuMeiRenWorks)[number] }) {
+function YuMeiRenScore({ work, onTopicFlash }: { work: (typeof yuMeiRenWorks)[number]; onTopicFlash?: () => void }) {
   const characters = work.lines.join('').split('');
   const lineEnds = new Set([6, 11, 18, 27, 34, 39, 46, 55]);
   const rhymeLabels = ['仄聲', '仄聲', '平聲', '平聲', '仄聲', '仄聲', '平聲', '平聲'];
-  const [topicFlash, setTopicFlash] = useState(false);
   const previousWork = useRef(work.id);
   useEffect(() => {
     if (previousWork.current !== work.id) {
-      setTopicFlash(true);
-      const timer = window.setTimeout(() => setTopicFlash(false), 1300);
+      onTopicFlash?.();
       previousWork.current = work.id;
-      return () => window.clearTimeout(timer);
     }
-  }, [work.id]);
+  }, [work.id, onTopicFlash]);
   return (
     <div className="score-scroll">
       <svg
@@ -330,11 +327,6 @@ function YuMeiRenScore({ work }: { work: (typeof yuMeiRenWorks)[number] }) {
           );
         })}
       </svg>
-      <div className={`score-topic-note ${topicFlash ? 'flash' : ''}`} aria-live="polite">
-        <span>詞牌：虞美人</span>
-        <strong>題目：{work.topic}</strong>
-        <span>作者：{work.author}</span>
-      </div>
     </div>
   );
 }
@@ -1910,6 +1902,7 @@ function CreatePage({ onBoardPublished }: { onBoardPublished?: () => void }) {
   const [wheelSpinning, setWheelSpinning] = useState(false);
   const [wheelTurns, setWheelTurns] = useState(0);
   const [tunePrimerSeen, setTunePrimerSeen] = useState(false);
+  const [topicFlash, setTopicFlash] = useState(false);
   const timers = useRef<number[]>([]);
   const selectedWork =
     yuMeiRenWorks.find((work) => work.id === workId) ?? yuMeiRenWorks[0];
@@ -1977,11 +1970,11 @@ function CreatePage({ onBoardPublished }: { onBoardPublished?: () => void }) {
         <div className="score-card">
           <header>
             <div><span>詞牌</span><strong>虞美人</strong></div>
-            <div><span>題目</span><strong>{selectedWork.topic}</strong></div>
+            <div className={topicFlash ? 'score-topic-field flash' : 'score-topic-field'}><span>題目</span><strong>{selectedWork.topic}</strong></div>
             <div><span>作者</span><strong>{selectedWork.author}</strong></div>
             <small>教學示意旋律｜宋代原曲多已失傳</small>
           </header>
-          <YuMeiRenScore work={selectedWork} />
+          <YuMeiRenScore work={selectedWork} onTopicFlash={() => { setTopicFlash(true); window.setTimeout(() => setTopicFlash(false), 1300); }} />
           <div className="score-legend">
             <span>
               <i className="note-dot" /> 音符的位置表示音高
