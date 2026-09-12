@@ -4273,14 +4273,23 @@ button[data-slot='button'] {
 .poem-observation>.poem-lines:not(.observation-plain){order:3}
 .poem-observation>.candidate-banner,.poem-observation>.page-advance,.poem-observation>.jueju-reveal{order:4}
 .lushi-observation{display:flex;flex-direction:column;gap:18px}
+.lushi-lesson>h1{margin:.35rem 0 .55rem;font-size:clamp(2.2rem,5vw,4rem);line-height:1.12;letter-spacing:.04em;color:#173d4b}
+.lushi-lesson>p{margin:.35rem auto 1.3rem;max-width:760px;font-size:clamp(1.05rem,2vw,1.35rem);line-height:1.7;color:#42616a}
+.lushi-work-switch{display:flex;flex-wrap:wrap;gap:.7rem;margin:0 auto 1.4rem;max-width:900px}
+.lushi-work-switch button{flex:1 1 260px;min-height:3.2rem;border:1px solid #a7bdc2;border-radius:14px;background:#f7fbfa;color:#244650;font-size:1.1rem;font-weight:800;cursor:pointer}
+.lushi-work-switch button.selected{border-color:#38766f;background:#dcefe9;box-shadow:0 0 0 3px rgba(56,118,111,.14)}
 .lushi-observation>.observation-plain{order:1}
 .lushi-observation>.lushi-choices{order:2}
-.lushi-observation>.lushi-rhyme-prompt{order:3}
-.lushi-observation>.poem-lines{order:4}
-.lushi-observation>.page-advance{order:5}
+.lushi-observation>.lushi-count-confirm{order:3}
+.lushi-observation>.lushi-rhyme-prompt{order:4}
+.lushi-observation>.poem-lines{order:5}
+.lushi-observation>.page-advance{order:6}
 .lushi-observation .poem-lines{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .lushi-observation>.observation-plain{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .lushi-observation>.observation-plain p{min-height:72px;display:grid;place-items:center}
+.lushi-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.lushi-choices>label{display:flex;align-items:center;justify-content:center;gap:12px;min-height:150px;padding:16px;border:1px solid #b8c9ce;border-radius:18px;background:rgb(255 255 255 / 78%);font-size:1.25rem;font-weight:800;color:#244650}
+.lushi-count-confirm{width:100%;min-height:3.4rem;border-radius:16px!important;background:#34766b!important;color:#fff!important;font-size:1.15rem;font-weight:900}
 .lushi-summary-reveal{margin-top:1rem}
 .lushi-summary-reveal .lushi-fact-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 .lushi-summary-reveal .lushi-name-grid{grid-template-columns:repeat(2,minmax(0,1fr));max-width:760px;margin:1rem auto}
@@ -4294,6 +4303,7 @@ button[data-slot='button'] {
 @media (max-width:720px){
   .lushi-observation .poem-lines{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .lushi-observation>.observation-plain{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .lushi-choices{grid-template-columns:1fr}
   .lushi-summary-reveal .lushi-fact-grid,.lushi-summary-reveal .lushi-name-grid{grid-template-columns:1fr}
   .modern-poetry-branch{grid-template-rows:auto 30px auto;gap:.25rem .7rem}
   .modern-poetry-branch>i{height:30px}
