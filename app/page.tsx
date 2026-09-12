@@ -129,7 +129,7 @@ const yuMeiRenWorks = [
     id: 'li-yu',
     author: '李煜',
     label: '春花秋月何時了',
-    topic: '亡國之痛',
+    topic: '沒有訂題',
     lines: [
       '春花秋月何時了',
       '往事知多少',
@@ -145,7 +145,7 @@ const yuMeiRenWorks = [
     id: 'jiang-jie',
     author: '蔣捷',
     label: '少年聽雨歌樓上',
-    topic: '一生聽雨',
+    topic: '聽雨',
     lines: [
       '少年聽雨歌樓上',
       '紅燭昏羅帳',
@@ -161,7 +161,7 @@ const yuMeiRenWorks = [
     id: 'qin-guan',
     author: '秦觀',
     label: '碧桃天上栽和露',
-    topic: '碧桃惜春',
+    topic: '碧桃天上栽和露',
     lines: [
       '碧桃天上栽和露',
       '不是凡花數',
@@ -206,6 +206,18 @@ const melodyDurations = Array.from(
 
 function YuMeiRenScore({ work }: { work: (typeof yuMeiRenWorks)[number] }) {
   const characters = work.lines.join('').split('');
+  const lineEnds = new Set([6, 11, 18, 27, 34, 39, 46, 55]);
+  const rhymeLabels = ['仄聲', '仄聲', '平聲', '平聲', '仄聲', '仄聲', '平聲', '平聲'];
+  const [topicFlash, setTopicFlash] = useState(false);
+  const previousWork = useRef(work.id);
+  useEffect(() => {
+    if (previousWork.current !== work.id) {
+      setTopicFlash(true);
+      const timer = window.setTimeout(() => setTopicFlash(false), 1300);
+      previousWork.current = work.id;
+      return () => window.clearTimeout(timer);
+    }
+  }, [work.id]);
   return (
     <div className="score-scroll">
       <svg
@@ -285,7 +297,7 @@ function YuMeiRenScore({ work }: { work: (typeof yuMeiRenWorks)[number] }) {
                       )}
                     </g>
                     <rect
-                      className="lyric-cell"
+                      className={`lyric-cell ${lineEnds.has(point.index) ? 'rhyme-cell' : ''}`}
                       x={point.x - 16}
                       y={baseY + 57}
                       width="32"
@@ -301,6 +313,16 @@ function YuMeiRenScore({ work }: { work: (typeof yuMeiRenWorks)[number] }) {
                     >
                       {characters[point.index]}
                     </text>
+                    {lineEnds.has(point.index) && (
+                      <>
+                        <text className="lyric-punctuation" x={point.x + 21} y={baseY + 81}>
+                          {point.index === 55 ? '。' : '，'}
+                        </text>
+                        <text className="rhyme-label" x={point.x} y={baseY + 108}>
+                          {rhymeLabels[[...lineEnds].indexOf(point.index)]}
+                        </text>
+                      </>
+                    )}
                   </g>
                 );
               })}
@@ -308,6 +330,11 @@ function YuMeiRenScore({ work }: { work: (typeof yuMeiRenWorks)[number] }) {
           );
         })}
       </svg>
+      <div className={`score-topic-note ${topicFlash ? 'flash' : ''}`} aria-live="polite">
+        <span>詞牌：虞美人</span>
+        <strong>題目：{work.topic}</strong>
+        <span>作者：{work.author}</span>
+      </div>
     </div>
   );
 }
@@ -1949,18 +1976,9 @@ function CreatePage({ onBoardPublished }: { onBoardPublished?: () => void }) {
         </p>
         <div className="score-card">
           <header>
-            <div>
-              <span>詞牌</span>
-              <strong>虞美人</strong>
-            </div>
-            <div>
-              <span>作者</span>
-              <strong>{selectedWork.author}</strong>
-            </div>
-            <div>
-              <span>內容</span>
-              <strong>{selectedWork.topic}</strong>
-            </div>
+            <div><span>詞牌</span><strong>虞美人</strong></div>
+            <div><span>題目</span><strong>{selectedWork.topic}</strong></div>
+            <div><span>作者</span><strong>{selectedWork.author}</strong></div>
             <small>教學示意旋律｜宋代原曲多已失傳</small>
           </header>
           <YuMeiRenScore work={selectedWork} />
