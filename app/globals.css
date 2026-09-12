@@ -4282,7 +4282,7 @@ button[data-slot='button'] {
 
 /* 分支線以同一個垂直主幹接到水平分流，線段不會錯位。 */
 .modern-poetry-branch{position:relative;grid-template-rows:auto 34px auto;gap:.35rem 2rem;overflow:visible}
-.modern-poetry-branch>i{height:34px;z-index:1;background:linear-gradient(#9b7b52,#9b7b52) center/4px 100% no-repeat}
+.modern-poetry-branch>i{width:100%;height:34px;z-index:1;background:linear-gradient(#9b7b52,#9b7b52) center/4px 100% no-repeat}
 .modern-poetry-branch>i:after{left:50%;top:28px;width:calc(100% - 5rem);height:4px;border-radius:4px;background:#9b7b52;transform:translateX(-50%)}
 .modern-poetry-branch>div{z-index:2}
 .modern-poetry-branch>div:before{top:-7px;height:7px}
