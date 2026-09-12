@@ -1886,7 +1886,7 @@ function CheckpointPage() {
   );
 }
 
-function CreatePage({ onBoardPublished }: { onBoardPublished?: () => void }) {
+function CreatePage({ onBoardPublished, onNext }: { onBoardPublished?: () => void; onNext?: () => void }) {
   const [prepStep, setPrepStep] = useState(1);
   const [workId, setWorkId] = useState(yuMeiRenWorks[0].id);
   const [phase, setPhase] = useState<'idle' | 'spinning' | 'revealed'>('idle');
@@ -1895,6 +1895,7 @@ function CreatePage({ onBoardPublished }: { onBoardPublished?: () => void }) {
   const [wheelSpinning, setWheelSpinning] = useState(false);
   const [wheelTurns, setWheelTurns] = useState(0);
   const [topicFlash, setTopicFlash] = useState(false);
+  const [published, setPublished] = useState(false);
   const timers = useRef<number[]>([]);
   const selectedWork =
     yuMeiRenWorks.find((work) => work.id === workId) ?? yuMeiRenWorks[0];
@@ -2092,9 +2093,10 @@ function CreatePage({ onBoardPublished }: { onBoardPublished?: () => void }) {
               key={`${pattern.id}-${topic}`}
               pattern={pattern}
               topic={topic}
-              onPublished={() => onBoardPublished?.()}
+              onPublished={() => { setPublished(true); onBoardPublished?.(); }}
             />
           )}
+          {published && <Button className="page-advance" onClick={onNext}>下一站：詞的別稱 <ArrowRight /></Button>}
         </div>
       )}
     </section>
@@ -3213,7 +3215,7 @@ export default function Home() {
       case 'origin':
         return <OriginPage next={() => navigate('create')} />;
       case 'create':
-        return <CreatePage onBoardPublished={handleBoardPublished} />;
+        return <CreatePage onBoardPublished={handleBoardPublished} onNext={() => navigate('aliases')} />;
       case 'aliases':
         return <AliasesPage next={() => navigate('types')} />;
       case 'types':
