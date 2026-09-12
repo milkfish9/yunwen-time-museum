@@ -2655,7 +2655,7 @@ function JuejuPage({ next }: { next: () => void }) {
         className={`jueju-lesson structure-opening ${structureVisible ? '' : 'leaving'}`}
       >
         <span className="jueju-section-label">近體詩館 · 第一分頁</span>
-        <h1>近體詩的兩條路</h1>
+        <h1>近體詩：兩條路</h1>
         <div className="modern-poetry-branch" aria-label="近體詩分成絕句和律詩">
           <strong>近體詩</strong>
           <i aria-hidden="true" />
