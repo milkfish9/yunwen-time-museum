@@ -2464,11 +2464,6 @@ function LushiPage({ next }: { next: () => void }) {
 function RuleMatchReview({ onComplete }: { onComplete: () => void }) {
   const [selectedRule, setSelectedRule] = useState<string | null>(null);
   const [ruleMatches, setRuleMatches] = useState<Record<string, string>>({});
-  const [dragging, setDragging] = useState<{
-    rule: string;
-    x: number;
-    y: number;
-  } | null>(null);
   const rules = ['一定押韻', '可押可不押', '不押韻'];
   const rulesReady = rhymeRules.every(
     (item) => ruleMatches[item.position] === item.rule,
@@ -2486,36 +2481,19 @@ function RuleMatchReview({ onComplete }: { onComplete: () => void }) {
   return (
     <div className="rule-match-board">
       <section className="rule-drag-bank" aria-label="可拖曳的押韻規則">
-        <h4>拖曳規則</h4>
+        <h4>點選規則</h4>
         {rules.map((rule) => (
           <button
             type="button"
             key={rule}
             className={selectedRule === rule ? 'selected' : ''}
             onClick={() => setSelectedRule(rule)}
-            onPointerDown={(event) => {
-              event.currentTarget.setPointerCapture(event.pointerId);
-              setDragging({ rule, x: event.clientX, y: event.clientY });
-            }}
-            onPointerMove={(event) => {
-              if (!dragging || dragging.rule !== rule) return;
-              setDragging({ rule, x: event.clientX, y: event.clientY });
-            }}
-            onPointerUp={(event) => {
-              const target = document
-                .elementFromPoint(event.clientX, event.clientY)
-                ?.closest<HTMLElement>('[data-rule-position]');
-              if (target?.dataset.rulePosition) {
-                placeRule(target.dataset.rulePosition, rule);
-              }
-              setDragging(null);
-            }}
           >
             <span aria-hidden="true">☷</span>
             {rule}
           </button>
         ))}
-        <p>也可先點規則，再點右邊句位。</p>
+        <p>先點規則，再點右邊的句位。</p>
       </section>
       <section className="rule-drop-targets" aria-label="押韻句位">
         <h4>放到句位</h4>
@@ -2538,15 +2516,6 @@ function RuleMatchReview({ onComplete }: { onComplete: () => void }) {
           );
         })}
       </section>
-      {dragging && (
-        <div
-          className="rule-drag-ghost"
-          style={{ left: dragging.x, top: dragging.y }}
-          aria-hidden="true"
-        >
-          {dragging.rule}
-        </div>
-      )}
     </div>
   );
 }
@@ -3234,7 +3203,7 @@ export default function Home() {
           {!page
             ? '六館導覽'
             : ['jueju','lushi','duizhang','jueju-quality'].includes(page)
-              ? '近體詩館 · 絕句'
+              ? '近體詩館'
               : '詞館 · 六個分頁'}
         </span>
         {boardAvailable && (
