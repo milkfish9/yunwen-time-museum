@@ -519,25 +519,6 @@ function CapsuleMachine({
   );
 }
 
-function CiPatternPrimer({ onContinue }: { onContinue: () => void }) {
-  return (
-    <section className="tune-primer" aria-labelledby="tune-primer-title">
-      <div className="tune-primer-copy">
-        <span className="step-label">先認識一個關鍵概念</span>
-        <h3 id="tune-primer-title">詞牌，就是旋律的譜</h3>
-        <p>它先規定旋律怎麼走、句子怎麼排列；換上不同文字，仍能沿著同一副譜唱。</p>
-        <Button onClick={onContinue}>我懂詞牌了，來抽一副旋律 <ArrowRight /></Button>
-      </div>
-      <div className="tune-primer-visual" aria-label="同一旋律譜填入不同歌詞的示意">
-        <div className="primer-melody"><i /><i /><i /><i /><i /><i /></div>
-        <div className="primer-lyrics"><span>春</span><span>花</span><span>秋</span><span>月</span><span>何</span><span>時</span></div>
-        <div className="primer-lyrics alternate"><span>校</span><span>門</span><span>鐘</span><span>聲</span><span>催</span><span>我</span></div>
-        <small>同一副詞牌・可以填入不同內容</small>
-      </div>
-    </section>
-  );
-}
-
 function ConceptQuiz({ onComplete }: { onComplete: () => void }) {
   const [answers, setAnswers] = useState<Record<number, string[]>>({});
   const questions = [
@@ -1913,7 +1894,6 @@ function CreatePage({ onBoardPublished }: { onBoardPublished?: () => void }) {
   const [topic, setTopic] = useState<string | null>(null);
   const [wheelSpinning, setWheelSpinning] = useState(false);
   const [wheelTurns, setWheelTurns] = useState(0);
-  const [tunePrimerSeen, setTunePrimerSeen] = useState(false);
   const [topicFlash, setTopicFlash] = useState(false);
   const timers = useRef<number[]>([]);
   const selectedWork =
@@ -2076,13 +2056,9 @@ function CreatePage({ onBoardPublished }: { onBoardPublished?: () => void }) {
             </div>
           </div>
 
-          {!tunePrimerSeen ? (
-            <CiPatternPrimer onContinue={() => setTunePrimerSeen(true)} />
-          ) : (
-            <CapsuleMachine phase={phase} pattern={pattern} spin={spinCapsule} />
-          )}
+          <CapsuleMachine phase={phase} pattern={pattern} spin={spinCapsule} />
 
-          {tunePrimerSeen && pattern && (
+          {pattern && (
             <div className="capsule-reveal" aria-live="polite">
               <div className="open-capsule">
                 <span />
@@ -2102,7 +2078,7 @@ function CreatePage({ onBoardPublished }: { onBoardPublished?: () => void }) {
             </div>
           )}
 
-          {tunePrimerSeen && pattern && (
+          {pattern && (
             <TopicWheel
               topic={topic}
               spinning={wheelSpinning}
@@ -2111,7 +2087,7 @@ function CreatePage({ onBoardPublished }: { onBoardPublished?: () => void }) {
             />
           )}
 
-          {tunePrimerSeen && pattern && topic && (
+          {pattern && topic && (
             <WritingMold
               key={`${pattern.id}-${topic}`}
               pattern={pattern}
