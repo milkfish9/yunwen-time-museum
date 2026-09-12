@@ -538,6 +538,19 @@ function CiPatternPrimer({ onContinue }: { onContinue: () => void }) {
   );
 }
 
+function ConceptQuiz({ onComplete }: { onComplete: () => void }) {
+  const [answers, setAnswers] = useState<Record<number, string[]>>({});
+  const questions = [
+    { prompt: '所以，你覺得「詞牌」可以決定什麼呢？', options: ['決定歌詞字數', '決定歌詞句數', '決定聲律（平仄的位置）', '決定歌詞內容'], correct: ['決定歌詞字數', '決定歌詞句數', '決定聲律（平仄的位置）'] },
+    { prompt: '能決定歌詞內容的是什麼呢？', options: ['詞牌', '題目'], correct: ['題目'] },
+  ];
+  const complete = questions.every((question, index) => {
+    const selected = answers[index] ?? [];
+    return selected.length === question.correct.length && selected.every((item) => question.correct.includes(item));
+  });
+  return <div className="concept-quiz">{questions.map((question, index) => { const selected = answers[index] ?? []; const correct = selected.length === question.correct.length && selected.every((item) => question.correct.includes(item)); return <fieldset key={question.prompt}><legend>{index + 1}. {question.prompt}{index === 0 && <small>（可複選）</small>}</legend><div className="concept-options">{question.options.map((option) => <button type="button" key={option} className={selected.includes(option) ? 'selected' : ''} onClick={() => setAnswers((current) => { const previous = current[index] ?? []; const next = previous.includes(option) ? previous.filter((item) => item !== option) : [...previous, option]; return { ...current, [index]: next }; })}>{option}</button>)}</div>{selected.length > 0 && <small>{correct ? '答對了！' : '再想想看。'}</small>}</fieldset>; })}{complete && <Button onClick={onComplete}>答對了，開始今天的填詞活動 <ArrowRight /></Button>}</div>;
+}
+
 function TopicWheel({
   topic,
   spinning,
@@ -1895,7 +1908,6 @@ function CheckpointPage() {
 function CreatePage({ onBoardPublished }: { onBoardPublished?: () => void }) {
   const [prepStep, setPrepStep] = useState(1);
   const [workId, setWorkId] = useState(yuMeiRenWorks[0].id);
-  const [scoreReady, setScoreReady] = useState(false);
   const [phase, setPhase] = useState<'idle' | 'spinning' | 'revealed'>('idle');
   const [pattern, setPattern] = useState<CiPattern | null>(null);
   const [topic, setTopic] = useState<string | null>(null);
@@ -1911,12 +1923,6 @@ function CreatePage({ onBoardPublished }: { onBoardPublished?: () => void }) {
     () => () => timers.current.forEach((timer) => window.clearTimeout(timer)),
     [],
   );
-
-  useEffect(() => {
-    if (prepStep !== 1 || scoreReady) return;
-    const timer = window.setTimeout(() => setScoreReady(true), 4450);
-    return () => window.clearTimeout(timer);
-  }, [prepStep, scoreReady]);
 
   function advancePrep(nextStep: number) {
     setPrepStep(nextStep);
@@ -1961,8 +1967,32 @@ function CreatePage({ onBoardPublished }: { onBoardPublished?: () => void }) {
         <p>先看旋律如何接住文字，再看詞牌如何固定格式。</p>
       </header>
 
-      <section className="origin-act score-act" id="create-prep-1">
-        <span className="act-number">第一步 · 跟著旋律填字</span>
+      {prepStep >= 1 && (
+      <section className="origin-act create-situation" id="create-prep-1">
+        <span className="act-number">第一步 · 代入情境</span>
+        <h2>我準備好要填歌詞了！但是……音樂哪來呢？</h2>
+        <p className="situation-line">我要自己譜曲嗎？不可能吧！我是大音痴ㄟ！</p>
+        <div className="tune-entrance-card">
+          <strong>詞牌正式登場</strong>
+          <p>詞牌就是一副固定的旋律譜。不同詞牌，就是不同的旋律和格式；詞人依照詞牌的旋律填入文字。</p>
+        </div>
+        {prepStep === 1 && <Button onClick={() => advancePrep(2)}>看看詞牌怎麼提供旋律 <ArrowRight /></Button>}
+      </section>
+      )}
+
+      {prepStep >= 2 && (
+      <section className="origin-act mold-act" id="create-prep-2">
+        <span className="act-number">第二步 · 看見詞牌的旋律譜</span>
+        <h2>以〈虞美人〉這個詞牌來舉例</h2>
+        <button type="button" className="tune-example-card" onClick={() => advancePrep(3)}>
+          <span>詞牌</span><strong>虞美人</strong><small>點擊展開五線譜</small>
+        </button>
+      </section>
+      )}
+
+      {prepStep >= 3 && (
+      <section className="origin-act score-act" id="create-prep-3">
+        <span className="act-number">第三步 · 跟著旋律填字</span>
         <h2>一個音，接住一個字</h2>
         <p className="score-intro">
           五線譜上的音符有高有低，也有不同的長短。每顆音下方都有一格，歌詞會逐字填入。
@@ -1990,7 +2020,7 @@ function CreatePage({ onBoardPublished }: { onBoardPublished?: () => void }) {
             </span>
           </div>
         </div>
-        {scoreReady && (
+        {(
           <>
             <div className="work-switchers" aria-label="切換其他虞美人作品">
               <span>同一副「虞美人」，也能換上不同內容：</span>
@@ -2004,43 +2034,22 @@ function CreatePage({ onBoardPublished }: { onBoardPublished?: () => void }) {
                 </button>
               ))}
             </div>
-            {prepStep === 1 && (
-              <Button onClick={() => advancePrep(2)}>
-                再看詞牌怎麼固定格式 <ArrowRight />
-              </Button>
-            )}
+            {prepStep === 3 && <Button onClick={() => advancePrep(4)}>我看見詞牌的固定格式了 <ArrowRight /></Button>}
           </>
         )}
       </section>
+      )}
 
-      {prepStep >= 2 && (
-        <section className="origin-act mold-act" id="create-prep-2">
-          <span className="act-number">第二步 · 認識詞牌模具</span>
-          <h2>詞牌把旋律變成填詞規則</h2>
-          <div className="mold-rules">
-            <span>
-              <strong>定句數</strong>要分成幾句
-            </span>
-            <span>
-              <strong>定字數</strong>每句放幾字
-            </span>
-            <span>
-              <strong>定聲律</strong>平仄與押韻的位置
-            </span>
-          </div>
-          <p>
-            同一詞牌保留相同的音樂與格式；作者可以填入不同題目和內容。這就是「倚聲填詞」。
-          </p>
-          {prepStep === 2 && (
-            <Button onClick={() => advancePrep(3)}>
-              我會了，來創作一闋詞吧！ <ArrowRight />
-            </Button>
-          )}
+      {prepStep >= 4 && (
+        <section className="origin-act ci-concept-quiz" id="create-prep-4">
+          <span className="act-number">第四步 · 小測驗</span>
+          <h2>先確認你看懂詞牌了嗎？</h2>
+          <ConceptQuiz onComplete={() => advancePrep(5)} />
         </section>
       )}
 
-      {prepStep >= 3 && (
-        <div className="creation-stage" id="create-prep-3">
+      {prepStep >= 5 && (
+        <div className="creation-stage" id="create-prep-5">
           <header className="lesson-heading compact-heading">
             <p className="eyebrow">今天你是填詞人</p>
             <h2>來創作一闋詞吧！</h2>
