@@ -4271,7 +4271,7 @@ button[data-slot='button'] {
 .poem-observation>.poem-questions{order:2}
 .poem-observation>.standalone-rhyme-prompt{order:2}
 .poem-observation>.poem-lines:not(.observation-plain){order:3}
-.poem-observation>.candidate-banner,.poem-observation>.page-advance,.poem-observation>.discovery-flip-reveal{order:4}
+.poem-observation>.candidate-banner,.poem-observation>.page-advance,.poem-observation>.jueju-reveal{order:4}
 .lushi-observation{display:flex;flex-direction:column;gap:18px}
 .lushi-observation>.observation-plain{order:1}
 .lushi-observation>.lushi-choices{order:2}
