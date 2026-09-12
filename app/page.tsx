@@ -6,8 +6,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
-  ChevronDown,
-  ChevronUp,
   CircleDot,
   Dices,
   Grid2X2,
@@ -2128,6 +2126,7 @@ function NumberWheel({
   label,
   locked = false,
   onChange,
+  options,
 }: {
   value: number;
   min?: number;
@@ -2135,65 +2134,16 @@ function NumberWheel({
   label: string;
   locked?: boolean;
   onChange: (value: number) => void;
+  options?: number[];
 }) {
-  const touchStart = useRef<number | null>(null);
-
-  function move(direction: -1 | 1) {
-    if (locked) return;
-    const next =
-      value + direction > max
-        ? min
-        : value + direction < min
-          ? max
-          : value + direction;
-    onChange(next);
-  }
-
-  const previous = value === min ? max : value - 1;
-  const next = value === max ? min : value + 1;
+  const choices = options ?? [min, Math.round((min + max) / 2), max];
 
   return (
     <div
-      className={`number-wheel ${locked ? 'locked' : ''}`}
+      className={`number-choice-grid ${locked ? 'locked' : ''}`}
       aria-label={label}
     >
-      <button
-        type="button"
-        onClick={() => move(-1)}
-        disabled={locked}
-        aria-label="往上一個數字"
-      >
-        <ChevronUp />
-      </button>
-      <div
-        className="wheel-window"
-        onWheel={(event) => {
-          event.preventDefault();
-          move(event.deltaY > 0 ? 1 : -1);
-        }}
-        onPointerDown={(event) => {
-          touchStart.current = event.clientY;
-          event.currentTarget.setPointerCapture(event.pointerId);
-        }}
-        onPointerUp={(event) => {
-          if (touchStart.current === null) return;
-          const distance = touchStart.current - event.clientY;
-          if (Math.abs(distance) > 14) move(distance > 0 ? 1 : -1);
-          touchStart.current = null;
-        }}
-      >
-        <span>{previous}</span>
-        <strong>{value}</strong>
-        <span>{next}</span>
-      </div>
-      <button
-        type="button"
-        onClick={() => move(1)}
-        disabled={locked}
-        aria-label="往下一個數字"
-      >
-        <ChevronDown />
-      </button>
+      {choices.map((choice) => <button type="button" key={choice} disabled={locked} className={value === choice ? 'selected' : ''} onClick={() => onChange(choice)}>{choice}</button>)}
     </div>
   );
 }
@@ -2314,11 +2264,13 @@ function PoemObservation({
   onContinue,
   continueLabel,
   candidateLabel,
+  skipCounts = false,
 }: {
   poem: JuejuPoem;
   onContinue: () => void;
   continueLabel: string;
   candidateLabel?: string;
+  skipCounts?: boolean;
 }) {
   const [lineChoice, setLineChoice] = useState(
     poem.lineCount === 3 ? 4 : poem.lineCount - 1,
@@ -2326,7 +2278,7 @@ function PoemObservation({
   const [characterChoice, setCharacterChoice] = useState(
     poem.charactersPerLine === 4 ? 5 : poem.charactersPerLine - 1,
   );
-  const [countsLocked, setCountsLocked] = useState(false);
+  const [countsLocked, setCountsLocked] = useState(skipCounts);
   const [countFeedback, setCountFeedback] = useState('');
   const [selectedRhymes, setSelectedRhymes] = useState<number[]>([]);
   const [lastAttempt, setLastAttempt] = useState({ index: -1, count: 0 });
@@ -2347,7 +2299,9 @@ function PoemObservation({
         <strong>{poem.author}</strong>
       </header>
 
-      <div className="poem-lines" aria-label={`${poem.title}全文`}>
+      {!countsLocked ? <div className="poem-lines observation-plain" aria-label={`${poem.title}全文`}>
+        {poem.lines.map((line) => <p key={line}>{line}</p>)}
+      </div> : <div className="poem-lines" aria-label={`${poem.title}全文`}>
         {poem.lines.map((line, index) => {
           const ending = poem.endings[index];
           const correct = selectedRhymes.includes(index);
@@ -2381,9 +2335,9 @@ function PoemObservation({
             </button>
           );
         })}
-      </div>
+      </div>}
 
-      <div className="poem-questions">
+      {!skipCounts && <div className="poem-questions">
         <div className="wheel-question">
           <p>句子共有</p>
           <NumberWheel
@@ -2397,6 +2351,7 @@ function PoemObservation({
               setLineChoice(value);
               setCountFeedback('');
             }}
+            options={[3, 4, 5]}
           />
           <p>句</p>
         </div>
@@ -2413,12 +2368,13 @@ function PoemObservation({
               setCharacterChoice(value);
               setCountFeedback('');
             }}
+            options={poem.charactersPerLine === 5 ? [4, 5, 6] : [6, 7, 8]}
           />
           <p>個字</p>
         </div>
-        <div className="rhyme-prompt">
+        {countsLocked && <div className="rhyme-prompt">
           <strong>點擊有押韻的句子，看看是哪幾句需要押韻！</strong>
-        </div>
+        </div>}
         <div className="count-confirm-area">
           <Button
             onClick={() => {
@@ -2443,13 +2399,13 @@ function PoemObservation({
             </output>
           )}
         </div>
-      </div>
+      </div>}
 
       {candidateLabel && countsLocked && !complete && (
         <div className="candidate-banner">{candidateLabel}</div>
       )}
 
-      {complete && (
+      {complete && skipCounts ? <Button className="page-advance" onClick={onContinue}>比較三首詩的押韻位置 <ArrowRight /></Button> : complete && (
         <DiscoveryFlipReveal
           poem={poem}
           rhymePositions={requiredRhymes.map((index) => index + 1)}
@@ -2590,7 +2546,7 @@ function JuejuReview({ onComplete }: { onComplete: () => void }) {
   return (
     <section className="jueju-review" aria-labelledby="jueju-review-title">
       <span className="act-number">本頁總複習</span>
-      <h2 id="jueju-review-title">《完成你的絕句結構卡》</h2>
+      <h2 id="jueju-review-title">《完成你的絕句格律卡》</h2>
 
       <div className="review-step">
         <h3>一、絕句共有幾句？</h3>
@@ -2606,6 +2562,7 @@ function JuejuReview({ onComplete }: { onComplete: () => void }) {
               setLineChoice(value);
               setLineFeedback('');
             }}
+            options={[3, 4, 5]}
           />
           <p>句</p>
         </div>
@@ -2633,7 +2590,7 @@ function JuejuReview({ onComplete }: { onComplete: () => void }) {
       </div>
 
       <div className="review-step">
-        <h3>二、絕句每句可能有幾個字？</h3>
+        <h3>二、絕句每句可能有幾個字？ <small>（複選題）</small></h3>
         <div className="character-choice-grid">
           {[5, 6, 7, 8].map((number) => (
             <button
@@ -2789,7 +2746,7 @@ function JuejuPage({ next }: { next: () => void }) {
           poem={dengguan}
           onContinue={() => moveTo(5)}
           continueLabel="比較三首詩的押韻位置"
-          candidateLabel="目前可以判斷：它是五言絕句候選。接著檢查押韻。"
+          skipCounts
         />
       </section>
     );
@@ -2828,7 +2785,7 @@ function JuejuPage({ next }: { next: () => void }) {
           </div>
           <div>
             <strong>登鸛雀樓</strong>
-            <span>—</span>
+            <span className="optional-rhyme">△</span>
             <span>✓</span>
             <span>×</span>
             <span>✓</span>
@@ -2885,7 +2842,7 @@ function JuejuPage({ next }: { next: () => void }) {
       {reviewComplete && (
         <div className="completed-structure-card" aria-live="polite">
           <span>已完成</span>
-          <h1>絕句結構卡</h1>
+          <h1>絕句格律卡</h1>
           <div className="structure-card-grid">
             <section>
               <h2>句數</h2>
@@ -2912,7 +2869,7 @@ function JuejuPage({ next }: { next: () => void }) {
           </div>
           <h2>絕句的基本結構，你已經找到了！</h2>
           <Button onClick={next}>
-            進入絕句品管局 <ArrowRight />
+            你已學會了絕句的格律！ <ArrowRight />
           </Button>
         </div>
       )}
