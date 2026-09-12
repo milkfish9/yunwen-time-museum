@@ -46,6 +46,8 @@ type PageId =
   | 'styles'
   | 'checkpoint'
   | 'jueju'
+  | 'lushi'
+  | 'duizhang'
   | 'jueju-quality';
 type PublishedWork = {
   id: string;
@@ -65,7 +67,9 @@ const PAGES: { id: PageId; label: string; title: string }[] = [
 ];
 const JINTISHI_PAGES: { id: PageId; label: string; title: string }[] = [
   { id: 'jueju', label: '01 絕句概念', title: '自己找出絕句的基本結構' },
-  { id: 'jueju-quality', label: '02 絕句品管局', title: '用規則檢驗絕句' },
+  { id: 'lushi', label: '02 律詩概念', title: '觀察律詩的基本格律' },
+  { id: 'duizhang', label: '03 律詩的對仗規則', title: '認識律詩對仗' },
+  { id: 'jueju-quality', label: '04 近體詩品管局', title: '用規則檢驗近體詩' },
 ];
 
 function randomIndex(length: number) {
@@ -2437,6 +2441,26 @@ function PoemMiniCard({ poem }: { poem: JuejuPoem }) {
   );
 }
 
+const lushiWorks = [
+  { title: '過故人莊', author: '孟浩然', lines: ['故人具雞黍','邀我至田家','綠樹村邊合','青山郭外斜','開軒面場圃','把酒話桑麻','待到重陽日','還來就菊花'], rhyme: [1,3,5,7] },
+  { title: '聞官軍收河南河北', author: '杜甫', lines: ['劍外忽傳收薊北','初聞涕淚滿衣裳','卻看妻子愁何在','漫卷詩書喜欲狂','白日放歌須縱酒','青春作伴好還鄉','即從巴峽穿巫峽','便下襄陽向洛陽'], rhyme: [1,3,5,7] },
+];
+
+// oxlint-disable jsx-a11y/label-has-associated-control
+function LushiPage({ next }: { next: () => void }) {
+  const [workIndex, setWorkIndex] = useState(0);
+  const [lineChoice, setLineChoice] = useState(7);
+  const [charChoice, setCharChoice] = useState(4);
+  const [locked, setLocked] = useState(false);
+  const [selected, setSelected] = useState<number[]>([]);
+  const [completed, setCompleted] = useState<number[]>([]);
+  const work = lushiWorks[workIndex];
+  const right = locked && lineChoice === 8 && (charChoice === (workIndex ? 7 : 5)) && work.rhyme.every((n) => selected.includes(n));
+  return <section className="jueju-lesson lushi-lesson"><span className="jueju-section-label">近體詩館 · 第二分頁</span><h1>律詩概念</h1><p>觀察八句律詩，找出它和絕句相同、又更長的格律。</p><div className="lushi-work-switch">{lushiWorks.map((item,index)=><button type="button" className={index===workIndex?'selected':''} key={item.title} onClick={()=>{setWorkIndex(index);setLocked(false);setSelected([]);}}>{item.title}</button>)}</div><article className="lushi-observation"><h2>〈{work.title}〉</h2><p>先觀察：這首詩共有幾句？每句幾個字？</p>{!locked ? <div className="observation-plain">{work.lines.map((line)=><p key={line}>{line}</p>)}</div> : <div className="poem-lines">{work.lines.map((line,index)=><button type="button" key={line} className={selected.includes(index)?'rhyme-selected':''} onClick={()=>work.rhyme.includes(index)&&setSelected((c)=>c.includes(index)?c:c.concat(index))}><em className="poem-line-number">{index+1}</em><span>{line}</span></button>)}</div>}<div className="lushi-choices"><label>共有 <NumberWheel value={lineChoice} options={[7,8,9]} min={7} max={9} label="律詩句數" locked={locked} onChange={setLineChoice}/> 句</label><label>每句 <NumberWheel value={charChoice} options={workIndex ? [6,7,8] : [4,5,6]} min={4} max={8} label="律詩字數" locked={locked} onChange={setCharChoice}/> 字</label></div>{!locked&&<Button onClick={()=>setLocked(true)}>確定句數與字數</Button>}{locked&&<><p className="rhyme-prompt"><strong>請按出有押韻的句子。</strong></p>{right&&<Button className="page-advance" onClick={()=>{setCompleted((c)=>c.includes(workIndex)?c:c.concat(workIndex));if(workIndex===0){setWorkIndex(1);setLocked(false);setSelected([]);setLineChoice(7);setCharChoice(6);}else{next();}}}>{completed.length===1?'BUT！人生最重要就是這個BUT！':'換看另一首律詩'} <ArrowRight/></Button>}</>}</article></section>;
+}
+
+// oxlint-enable jsx-a11y/label-has-associated-control
+
 function RuleMatchReview({ onComplete }: { onComplete: () => void }) {
   const [selectedRule, setSelectedRule] = useState<string | null>(null);
   const [ruleMatches, setRuleMatches] = useState<Record<string, string>>({});
@@ -3141,10 +3165,10 @@ export default function Home() {
       const ciMatch = location.hash.match(
         /^#ci\/(origin|create|aliases|types|styles|checkpoint)$/,
       );
-      const jintishiMatch = location.hash.match(/^#jintishi\/(jueju|quality)$/);
+      const jintishiMatch = location.hash.match(/^#jintishi\/(jueju|lushi|duizhang|quality)$/);
       if (ciMatch) setPage(ciMatch[1] as PageId);
       else if (jintishiMatch)
-        setPage(jintishiMatch[1] === 'quality' ? 'jueju-quality' : 'jueju');
+        setPage(jintishiMatch[1] === 'quality' ? 'jueju-quality' : jintishiMatch[1] as PageId);
       else setPage(null);
     };
     route();
@@ -3161,6 +3185,8 @@ export default function Home() {
 
   function navigate(next: PageId | null) {
     if (next === 'jueju') location.hash = 'jintishi/jueju';
+    else if (next === 'lushi') location.hash = 'jintishi/lushi';
+    else if (next === 'duizhang') location.hash = 'jintishi/duizhang';
     else if (next === 'jueju-quality') location.hash = 'jintishi/quality';
     else location.hash = next ? `ci/${next}` : 'map';
     setPage(next);
@@ -3182,7 +3208,11 @@ export default function Home() {
       case 'checkpoint':
         return <CheckpointPage />;
       case 'jueju':
-        return <JuejuPage next={() => navigate('jueju-quality')} />;
+        return <JuejuPage next={() => navigate('lushi')} />;
+      case 'lushi':
+        return <LushiPage next={() => navigate('duizhang')} />;
+      case 'duizhang':
+        return <section className="lesson knowledge-page"><h1>律詩的對仗規則</h1><p>這一頁即將開放。</p></section>;
       case 'jueju-quality':
         return <JuejuQualityPage finish={() => navigate(null)} />;
       default:
@@ -3203,7 +3233,7 @@ export default function Home() {
         <span className="tag">
           {!page
             ? '六館導覽'
-            : page === 'jueju' || page === 'jueju-quality'
+            : ['jueju','lushi','duizhang','jueju-quality'].includes(page)
               ? '近體詩館 · 絕句'
               : '詞館 · 六個分頁'}
         </span>
@@ -3223,18 +3253,18 @@ export default function Home() {
               </Button>
               <TimelineRail
                 currentHall={
-                  page === 'jueju' || page === 'jueju-quality' ? '近體詩' : '詞'
+                  ['jueju','lushi','duizhang','jueju-quality'].includes(page) ? '近體詩' : '詞'
                 }
               />
               <nav
                 className="page-nav"
                 aria-label={
-                  page === 'jueju' || page === 'jueju-quality'
+                  ['jueju','lushi','duizhang','jueju-quality'].includes(page)
                     ? '近體詩館頁面'
                     : '詞館頁面'
                 }
               >
-                {(page === 'jueju' || page === 'jueju-quality'
+                {(['jueju','lushi','duizhang','jueju-quality'].includes(page)
                   ? JINTISHI_PAGES
                   : PAGES
                 ).map((item) => (
